@@ -39,16 +39,7 @@ function AsciiLogo() {
   return (
     <div className="ascii-logo mx-auto" aria-label="OSINT Forge logo">
       <pre className="ascii-mark" aria-hidden="true">{String.raw`
-            .-""""-.
-        .-'"  _  _  "'-.
-      .'     / \/ \     '.
-     /      /      \      \
-    |      |        |      |
-    |      |        |      |
-     \      \      /      /
-      '.      \__/      .'
-        '-._        _.-'
-             '----'
+
 `}</pre>
 
       <div className="ascii-eye" aria-hidden="true">
