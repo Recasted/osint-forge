@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f5f7f4;
+  --foreground: #131711;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+a {
+  text-underline-offset: 4px;
+}
+
+.ascii-logo {
+  position: relative;
+  width: min(100%, 430px);
+  color: #f3f4f0;
+  filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.12));
+  text-align: center;
+}
+
+.ascii-logo pre {
+  margin: 0;
+  font-family: var(--font-geist-mono), "Courier New", monospace;
+  line-height: 1.05;
+  letter-spacing: 0;
+  white-space: pre;
+}
+
+.ascii-mark {
+  font-size: clamp(7px, 1.15vw, 11px);
+  opacity: 0.9;
+}
+
+.ascii-logo .ascii-eye {
+  position: absolute;
+  left: 50%;
+  top: clamp(45px, 5.8vw, 66px);
+  width: 9ch;
+  transform: translateX(-50%);
+  color: #ffffff;
+  font-family: var(--font-geist-mono), "Courier New", monospace;
+  font-size: clamp(8px, 1.22vw, 12px);
+  line-height: 1;
+}
+
+.ascii-eye pre {
+  position: absolute;
+  inset: 0;
+  text-align: center;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.36);
+}
+
+.ascii-eye-open {
+  animation: ascii-eye-open 4.8s steps(1, end) infinite;
+}
+
+.ascii-eye-closed {
+  opacity: 0;
+  animation: ascii-eye-closed 4.8s steps(1, end) infinite;
+}
+
+.ascii-wordmark {
+  margin-top: clamp(8px, 1.3vw, 12px) !important;
+  overflow: hidden;
+  font-size: clamp(3.2px, 0.58vw, 5.5px);
+  opacity: 0.88;
+}
+
+@keyframes ascii-eye-open {
+  0%,
+  43%,
+  49%,
+  100% {
+    opacity: 1;
+  }
+
+  45%,
+  47% {
+    opacity: 0;
+  }
+}
+
+@keyframes ascii-eye-closed {
+  0%,
+  43%,
+  49%,
+  100% {
+    opacity: 0;
+  }
+
+  45%,
+  47% {
+    opacity: 1;
+  }
+}
+
+/* Keep these overrides last so dev-mode duplicate CSS cannot enlarge the logo. */
+body .ascii-logo {
+  width: min(100%, 430px);
+}
+
+body .ascii-mark {
+  font-size: clamp(7px, 1.15vw, 11px);
+}
+
+body .ascii-logo .ascii-eye {
+  top: clamp(45px, 5.8vw, 66px);
+  font-size: clamp(8px, 1.22vw, 12px);
+}
+
+body .ascii-wordmark {
+  margin-top: clamp(8px, 1.3vw, 12px) !important;
+  font-size: clamp(3.2px, 0.58vw, 5.5px);
+}
