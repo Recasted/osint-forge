@@ -35,7 +35,36 @@ const plans = [
   { name: "Team", credits: "50,000", price: "$399" },
 ];
 
+function AsciiLogo() {
+  return (
+    <div className="ascii-logo mx-auto" aria-label="OSINT Forge logo">
+      <pre className="ascii-mark" aria-hidden="true">{String.raw`
+            .-""""-.
+        .-'"  _  _  "'-.
+      .'     / \/ \     '.
+     /      /      \      \
+    |      |        |      |
+    |      |        |      |
+     \      \      /      /
+      '.      \__/      .'
+        '-._        _.-'
+             '----'
+`}</pre>
 
+      <div className="ascii-eye" aria-hidden="true">
+        <pre className="ascii-eye-open">{String.raw`
+             < (●) >
+`}</pre>
+
+        <pre className="ascii-eye-closed">{String.raw`
+             < --- >
+`}</pre>
+      </div>
+
+      <span className="sr-only">OSINT Forge</span>
+    </div>
+  );
+}
 
 export default function Home() {
   return (
