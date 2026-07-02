@@ -35,16 +35,53 @@ const plans = [
   { name: "Enterprise", credits: "1000", price: "$39.99" },
 ];
 
+const creditPacks = [
+  { name: "Extra 50", credits: "50", price: "$5" },
+  { name: "Extra 200", credits: "200", price: "$20" },
+  { name: "Extra 1000", credits: "1000", price: "$100" },
+];
+
+const faqs = [
+  {
+    question: "Test FAQ question one",
+    answer:
+      "Test answer text you can replace later. Use this area for billing, credits, account access, or support details.",
+  },
+  {
+    question: "Test FAQ question two",
+    answer:
+      "Test answer text you can replace later. This click menu keeps longer answers tucked away until someone opens them.",
+  },
+  {
+    question: "Test FAQ question three",
+    answer:
+      "Test answer text you can replace later. Add product limits, refund notes, or support rules here.",
+  },
+];
+
+const socialLinks = [
+  { label: "Telegram Updates", href: "https://t.me/osintforge_updates" },
+  { label: "Community Channel", href: "https://t.me/osintforge_community" },
+];
+
 function AsciiLogo() {
   return (
     <div className="ascii-logo mx-auto" aria-label="OSINT Forge logo">
       <pre className="ascii-mark" aria-hidden="true">{String.raw`
-
+        +          
+      /   \        
+   + /     \ +    
+   |  _____  |    
+   | /     \ |    
+   | \_____/ |__  
+   +         +  \ 
+     \       / \_\
+        +          
 `}</pre>
 
       <div className="ascii-eye" aria-hidden="true">
         <pre className="ascii-eye-open">{String.raw`
-             < (●) >
+             < (o) >
 `}</pre>
 
         <pre className="ascii-eye-closed">{String.raw`
@@ -82,6 +119,12 @@ export default function Home() {
               </a>
               <a className="transition hover:text-white" href="#pricing">
                 Pricing
+              </a>
+              <a className="transition hover:text-white" href="#faq">
+                FAQ
+              </a>
+              <a className="transition hover:text-white" href="#community">
+                Community
               </a>
             </nav>
             <a
@@ -235,8 +278,9 @@ export default function Home() {
               </h2>
             </div>
             <p className="max-w-md text-sm leading-7 text-white/52">
-              All subscription plans and credit purchases are priced excluding applicable taxes.
-              Final taxes are calculated during checkout based on your billing location. 
+              All subscription plans and credit purchases are priced excluding
+              applicable taxes. Final taxes are calculated during checkout based
+              on your billing location.
             </p>
           </div>
 
@@ -245,7 +289,7 @@ export default function Home() {
               <article key={plan.name} className="bg-[#080a0c] p-6">
                 <h3 className="text-2xl font-semibold">{plan.name}</h3>
                 <p className="mt-6 font-mono text-sm text-white/42">{plan.credits} credits</p>
-               <p className="mt-3 text-5xl font-semibold">{plan.price}</p>
+                <p className="mt-3 text-5xl font-semibold">{plan.price}</p>
                 <a
                   href="#"
                   className="mt-8 inline-flex w-full items-center justify-center border border-white/16 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] transition hover:border-white hover:bg-white hover:text-black"
@@ -255,8 +299,103 @@ export default function Home() {
               </article>
             ))}
           </div>
+
+          <div className="mt-10 grid gap-6 lg:grid-cols-[0.8fr_1fr]">
+            <aside className="border border-[#00e0aa]/40 bg-[#00e0aa]/10 p-6">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00e0aa]">
+                Credit rules
+              </p>
+              <div className="mt-6 space-y-4 text-sm leading-7 text-white/70">
+                <p>1 credit per search.</p>
+                <p>5 credits per export.</p>
+                <p>
+                  Extra credits can only be purchased from an active account. An
+                  account requires an active subscription plan.
+                </p>
+              </div>
+            </aside>
+
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00e0aa]">
+                Add-on credits
+              </p>
+              <div className="mt-5 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3">
+                {creditPacks.map((pack) => (
+                  <article key={pack.name} className="bg-[#050607] p-5">
+                    <h3 className="text-xl font-semibold">{pack.name}</h3>
+                    <p className="mt-5 font-mono text-sm text-white/42">
+                      {pack.credits} extra credits
+                    </p>
+                    <p className="mt-3 text-4xl font-semibold">{pack.price}</p>
+                    <a
+                      href="#"
+                      className="mt-6 inline-flex w-full items-center justify-center border border-white/16 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] transition hover:border-white hover:bg-white hover:text-black"
+                    >
+                      Buy Credits
+                    </a>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
+
+      <section id="faq" className="border-t border-white/10 bg-[#080a0c] px-5 py-20 sm:px-8 lg:px-10">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.75fr_1fr]">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00e0aa]">
+              FAQ
+            </p>
+            <h2 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">
+              Click menu with placeholder answers.
+            </h2>
+          </div>
+
+          <div className="space-y-3">
+            {faqs.map((faq) => (
+              <details key={faq.question} className="group border border-white/10 bg-[#050607] p-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-5 text-lg font-semibold text-white">
+                  <span>{faq.question}</span>
+                  <span className="grid size-9 shrink-0 place-items-center border border-white/16 font-mono text-sm text-[#00e0aa] transition group-open:rotate-45">
+                    +
+                  </span>
+                </summary>
+                <p className="mt-5 border-t border-white/10 pt-5 text-sm leading-7 text-white/54">
+                  {faq.answer}
+                </p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <footer id="community" className="border-t border-white/10 px-5 py-8 sm:px-8 lg:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 md:flex-row md:items-center">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/42">
+              Social channels
+            </p>
+            <p className="mt-2 text-sm text-white/54">
+              Follow updates or join the community channel.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            {socialLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center border border-white/16 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] transition hover:border-white hover:bg-white hover:text-black"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }
