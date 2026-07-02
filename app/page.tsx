@@ -235,8 +235,8 @@ export default function Home() {
               </h2>
             </div>
             <p className="max-w-md text-sm leading-7 text-white/52">
-              Flexible investigation credits for enrichment, graph expansion,
-              source capture, monitoring, and report generation.
+              All subscription plans and credit purchases are priced excluding applicable taxes.
+              Final taxes are calculated during checkout based on your billing location. 
             </p>
           </div>
 
