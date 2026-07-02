@@ -1,3 +1,5 @@
+import { InteractiveEffects } from "./interactive-effects";
+
 const stats = [
   { value: "120+", label: "Open-source connectors" },
   { value: "4.8k", label: "Entities resolved per case" },
@@ -64,39 +66,10 @@ const socialLinks = [
   { label: "Community Channel", href: "https://t.me/osintforge_community" },
 ];
 
-function AsciiLogo() {
-  return (
-    <div className="ascii-logo mx-auto" aria-label="OSINT Forge logo">
-      <pre className="ascii-mark" aria-hidden="true">{String.raw`
-        +          
-      /   \        
-   + /     \ +    
-   |  _____  |    
-   | /     \ |    
-   | \_____/ |__  
-   +         +  \ 
-     \       / \_\
-        +          
-`}</pre>
-
-      <div className="ascii-eye" aria-hidden="true">
-        <pre className="ascii-eye-open">{String.raw`
-             < (o) >
-`}</pre>
-
-        <pre className="ascii-eye-closed">{String.raw`
-             < --- >
-`}</pre>
-      </div>
-
-      <span className="sr-only">OSINT Forge</span>
-    </div>
-  );
-}
-
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#050607] text-[#f3f4f0]">
+      <InteractiveEffects />
       <section className="relative overflow-hidden border-b border-white/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_16%,rgba(64,92,255,0.28),transparent_28%),radial-gradient(circle_at_20%_80%,rgba(0,224,170,0.14),transparent_26%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:44px_44px]" />
@@ -135,12 +108,8 @@ export default function Home() {
             </a>
           </header>
 
-          <div className="flex justify-center pt-12">
-            <AsciiLogo />
-          </div>
-
           <div className="grid flex-1 items-center gap-12 py-12 lg:grid-cols-[1fr_470px]">
-            <div className="lg:pt-4">
+            <div className="lg:pt-4" data-reveal>
               <p className="mb-5 inline-flex border border-[#5f73ff]/50 bg-[#5f73ff]/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#aeb8ff]">
                 OSINT intelligence platform
               </p>
@@ -167,7 +136,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="mt-10 grid max-w-3xl gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-3">
+              <div className="mt-10 grid max-w-3xl gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-3" data-reveal>
                 {stats.map((stat) => (
                   <div key={stat.label} className="bg-[#07090a] p-5">
                     <p className="text-3xl font-semibold text-white">{stat.value}</p>
@@ -179,7 +148,7 @@ export default function Home() {
               </div>
             </div>
 
-            <aside className="border border-white/12 bg-[#07090a]/92 p-4 shadow-2xl shadow-black/50 backdrop-blur">
+            <aside className="border border-white/12 bg-[#07090a]/92 p-4 shadow-2xl shadow-black/50 backdrop-blur" data-reveal>
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#00e0aa]">
@@ -229,7 +198,7 @@ export default function Home() {
       <section id="capabilities" className="border-b border-white/10 px-5 py-20 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-8 lg:grid-cols-[0.75fr_1fr]">
-            <div>
+            <div data-reveal>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00e0aa]">
                 Capabilities
               </p>
@@ -237,7 +206,7 @@ export default function Home() {
                 Built for investigators who need answers, not another tab stack.
               </h2>
             </div>
-            <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-2">
+            <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-2" data-reveal>
               {capabilities.map((item) => (
                 <article key={item.title} className="bg-[#080a0c] p-6">
                   <div className="mb-8 h-1 w-16 bg-[#5f73ff]" />
@@ -252,10 +221,10 @@ export default function Home() {
 
       <section id="workflow" className="border-b border-white/10 bg-[#080a0c] px-5 py-20 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-7xl">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00e0aa]">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00e0aa]" data-reveal>
             Process
           </p>
-          <div className="mt-8 grid gap-px overflow-hidden border border-white/10 bg-white/10 lg:grid-cols-3">
+          <div className="mt-8 grid gap-px overflow-hidden border border-white/10 bg-white/10 lg:grid-cols-3" data-reveal>
             {workflow.map((step, index) => (
               <div key={step} className="bg-[#050607] p-7">
                 <p className="font-mono text-sm text-[#5f73ff]">0{index + 1}</p>
@@ -268,7 +237,7 @@ export default function Home() {
 
       <section id="pricing" className="px-5 py-20 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end" data-reveal>
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00e0aa]">
                 Access
@@ -284,7 +253,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-10 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3">
+          <div className="mt-10 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3" data-reveal>
             {plans.map((plan) => (
               <article key={plan.name} className="bg-[#080a0c] p-6">
                 <h3 className="text-2xl font-semibold">{plan.name}</h3>
@@ -300,7 +269,7 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="mt-10 grid gap-6 lg:grid-cols-[0.8fr_1fr]">
+          <div className="mt-10 grid gap-6 lg:grid-cols-[0.8fr_1fr]" data-reveal>
             <aside className="border border-[#00e0aa]/40 bg-[#00e0aa]/10 p-6">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00e0aa]">
                 Credit rules
@@ -343,7 +312,7 @@ export default function Home() {
 
       <section id="faq" className="border-t border-white/10 bg-[#080a0c] px-5 py-20 sm:px-8 lg:px-10">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.75fr_1fr]">
-          <div>
+          <div data-reveal>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00e0aa]">
               FAQ
             </p>
@@ -352,7 +321,7 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3" data-reveal>
             {faqs.map((faq) => (
               <details key={faq.question} className="group border border-white/10 bg-[#050607] p-5">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-5 text-lg font-semibold text-white">
@@ -371,7 +340,7 @@ export default function Home() {
       </section>
 
       <footer id="community" className="border-t border-white/10 px-5 py-8 sm:px-8 lg:px-10">
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 md:flex-row md:items-center">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 md:flex-row md:items-center" data-reveal>
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/42">
               Social channels
