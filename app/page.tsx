@@ -62,8 +62,8 @@ const faqs = [
 ];
 
 const socialLinks = [
-  { label: "Telegram Updates", href: "https://t.me/osintforge_updates" },
-  { label: "Community Channel", href: "https://t.me/osintforge_community" },
+  { label: "Telegram Updates", href: "https://t.me/osintforgeupdates" },
+  { label: "Community Channel", href: "https://t.me/OsintForgeChat" },
 ];
 
 export default function Home() {
