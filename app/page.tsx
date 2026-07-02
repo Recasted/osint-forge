@@ -245,7 +245,12 @@ export default function Home() {
               <article key={plan.name} className="bg-[#080a0c] p-6">
                 <h3 className="text-2xl font-semibold">{plan.name}</h3>
                 <p className="mt-6 font-mono text-sm text-white/42">{plan.credits} credits</p>
-                <p className="mt-3 text-5xl font-semibold">{plan.price}</p>
+                <p className="mt-3 flex items-end gap-2">
+                <span className="text-5xl font-semibold">{plan.price}</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400">
+                Excl. tax
+                </span>
+              </p>
                 <a
                   href="#"
                   className="mt-8 inline-flex w-full items-center justify-center border border-white/16 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] transition hover:border-white hover:bg-white hover:text-black"
