@@ -30,9 +30,9 @@ const workflow = [
 ];
 
 const plans = [
-  { name: "Starter", credits: "200", price: "$4.99" },
-  { name: "Analyst", credits: "450", price: "$14.99" },
-  { name: "Team", credits: "1000", price: "$39.99" },
+  { name: "Core", credits: "200", price: "$4.99" },
+  { name: "Professional", credits: "450", price: "$14.99" },
+  { name: "Enterprise", credits: "1000", price: "$39.99" },
 ];
 
 function AsciiLogo() {
