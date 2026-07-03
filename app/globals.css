@@ -190,19 +190,19 @@ a {
 
 .preview-result-line {
   opacity: 0;
-  animation: preview-result-line 35s ease-in-out infinite;
+  animation: preview-result-line-1 35s ease-in-out infinite;
 }
 
 .preview-result-line:nth-child(1) {
-  animation-delay: 15s;
+  animation-name: preview-result-line-1;
 }
 
 .preview-result-line:nth-child(2) {
-  animation-delay: 16s;
+  animation-name: preview-result-line-2;
 }
 
 .preview-result-line:nth-child(3) {
-  animation-delay: 17s;
+  animation-name: preview-result-line-3;
 }
 
 .tool-rail {
@@ -311,10 +311,10 @@ a {
 @keyframes preview-row-1 {
   0% {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(4px);
   }
 
-  7%,
+  8.1%,
   91% {
     opacity: 1;
     transform: translateY(0);
@@ -329,12 +329,12 @@ a {
 
 @keyframes preview-row-2 {
   0%,
-  10% {
+  18% {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(4px);
   }
 
-  14%,
+  18.1%,
   89% {
     opacity: 1;
     transform: translateY(0);
@@ -349,12 +349,12 @@ a {
 
 @keyframes preview-row-3 {
   0%,
-  15% {
+  28% {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(4px);
   }
 
-  19%,
+  28.1%,
   87% {
     opacity: 1;
     transform: translateY(0);
@@ -369,12 +369,12 @@ a {
 
 @keyframes preview-row-4 {
   0%,
-  20% {
+  36% {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(4px);
   }
 
-  24%,
+  36.1%,
   85% {
     opacity: 1;
     transform: translateY(0);
@@ -389,12 +389,12 @@ a {
 
 @keyframes preview-row-5 {
   0%,
-  25% {
+  43% {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(4px);
   }
 
-  29%,
+  43.1%,
   83% {
     opacity: 1;
     transform: translateY(0);
@@ -409,12 +409,12 @@ a {
 
 @keyframes preview-row-6 {
   0%,
-  30% {
+  48% {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(4px);
   }
 
-  34%,
+  48.1%,
   81% {
     opacity: 1;
     transform: translateY(0);
@@ -429,12 +429,12 @@ a {
 
 @keyframes preview-row-7 {
   0%,
-  35% {
+  58% {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(4px);
   }
 
-  39%,
+  58.1%,
   79% {
     opacity: 1;
     transform: translateY(0);
@@ -449,12 +449,12 @@ a {
 
 @keyframes correlated-card {
   0%,
-  38% {
+  62% {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(6px);
   }
 
-  46%,
+  62.1%,
   88% {
     opacity: 1;
     transform: translateY(0);
@@ -471,13 +471,13 @@ a {
   }
 }
 
-@keyframes preview-result-line {
+@keyframes preview-result-line-1 {
   0%,
-  10% {
+  65% {
     opacity: 0;
   }
 
-  16%,
+  65.1%,
   82% {
     opacity: 1;
   }
@@ -486,6 +486,40 @@ a {
     opacity: 0;
   }
 
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes preview-result-line-2 {
+  0%,
+  68% {
+    opacity: 0;
+  }
+
+  68.1%,
+  82% {
+    opacity: 1;
+  }
+
+  88%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes preview-result-line-3 {
+  0%,
+  71% {
+    opacity: 0;
+  }
+
+  71.1%,
+  82% {
+    opacity: 1;
+  }
+
+  88%,
   100% {
     opacity: 0;
   }
