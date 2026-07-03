@@ -126,7 +126,7 @@ export default function Home() {
             </a>
           </header>
 
-          <div className="grid flex-1 items-center gap-12 py-12 lg:grid-cols-[1fr_470px]">
+          <div className="grid flex-1 items-start gap-12 py-12 lg:grid-cols-[1fr_470px]">
             <div className="lg:pt-4" data-reveal>
               <p className="mb-5 inline-flex border border-[#5f73ff]/50 bg-[#5f73ff]/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#aeb8ff]">
                 OSINT intelligence platform
@@ -187,7 +187,7 @@ export default function Home() {
               </div>
             </div>
 
-            <aside className="glow-card search-preview border border-white/12 bg-[#07090a]/92 p-4 shadow-2xl shadow-black/50 backdrop-blur lg:self-center" data-reveal>
+            <aside className="glow-card search-preview border border-white/12 bg-[#07090a]/92 p-4 shadow-2xl shadow-black/50 backdrop-blur lg:mt-28" data-reveal>
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#00e0aa]">
@@ -215,8 +215,9 @@ export default function Home() {
                     <span className="text-white/90">alex.mercer@example.com</span>
                     <span className="terminal-cursor" />
                   </p>
-                  <span className="shrink-0 border border-[#f0b35a]/50 bg-[#f0b35a]/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#f0b35a]">
-                    Running
+                  <span className="status-badge shrink-0 border border-[#f0b35a]/50 bg-[#f0b35a]/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#f0b35a]">
+                    <span className="status-running">Running</span>
+                    <span className="status-complete">Complete</span>
                   </span>
                 </div>
 
