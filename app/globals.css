@@ -311,18 +311,21 @@ a {
 @keyframes preview-row-1 {
   0% {
     opacity: 0;
-    transform: translateY(4px);
+    filter: blur(6px);
+    transform: translateY(14px);
   }
 
-  8.1%,
+  11%,
   91% {
     opacity: 1;
+    filter: blur(0);
     transform: translateY(0);
   }
 
   94%,
   100% {
     opacity: 0;
+    filter: blur(4px);
     transform: translateY(-4px);
   }
 }
@@ -331,18 +334,21 @@ a {
   0%,
   18% {
     opacity: 0;
-    transform: translateY(4px);
+    filter: blur(6px);
+    transform: translateY(14px);
   }
 
-  18.1%,
+  21%,
   89% {
     opacity: 1;
+    filter: blur(0);
     transform: translateY(0);
   }
 
   92%,
   100% {
     opacity: 0;
+    filter: blur(4px);
     transform: translateY(-4px);
   }
 }
@@ -351,18 +357,21 @@ a {
   0%,
   28% {
     opacity: 0;
-    transform: translateY(4px);
+    filter: blur(6px);
+    transform: translateY(14px);
   }
 
-  28.1%,
+  31%,
   87% {
     opacity: 1;
+    filter: blur(0);
     transform: translateY(0);
   }
 
   90%,
   100% {
     opacity: 0;
+    filter: blur(4px);
     transform: translateY(-4px);
   }
 }
@@ -371,18 +380,21 @@ a {
   0%,
   36% {
     opacity: 0;
-    transform: translateY(4px);
+    filter: blur(6px);
+    transform: translateY(14px);
   }
 
-  36.1%,
+  39%,
   85% {
     opacity: 1;
+    filter: blur(0);
     transform: translateY(0);
   }
 
   88%,
   100% {
     opacity: 0;
+    filter: blur(4px);
     transform: translateY(-4px);
   }
 }
@@ -391,18 +403,21 @@ a {
   0%,
   43% {
     opacity: 0;
-    transform: translateY(4px);
+    filter: blur(6px);
+    transform: translateY(14px);
   }
 
-  43.1%,
+  45.5%,
   83% {
     opacity: 1;
+    filter: blur(0);
     transform: translateY(0);
   }
 
   86%,
   100% {
     opacity: 0;
+    filter: blur(4px);
     transform: translateY(-4px);
   }
 }
@@ -411,18 +426,21 @@ a {
   0%,
   48% {
     opacity: 0;
-    transform: translateY(4px);
+    filter: blur(6px);
+    transform: translateY(14px);
   }
 
-  48.1%,
+  50.5%,
   81% {
     opacity: 1;
+    filter: blur(0);
     transform: translateY(0);
   }
 
   84%,
   100% {
     opacity: 0;
+    filter: blur(4px);
     transform: translateY(-4px);
   }
 }
@@ -431,18 +449,21 @@ a {
   0%,
   58% {
     opacity: 0;
-    transform: translateY(4px);
+    filter: blur(6px);
+    transform: translateY(14px);
   }
 
-  58.1%,
+  61%,
   79% {
     opacity: 1;
+    filter: blur(0);
     transform: translateY(0);
   }
 
   82%,
   100% {
     opacity: 0;
+    filter: blur(4px);
     transform: translateY(-4px);
   }
 }
@@ -451,22 +472,26 @@ a {
   0%,
   62% {
     opacity: 0;
-    transform: translateY(6px);
+    filter: blur(8px);
+    transform: translateY(16px);
   }
 
-  62.1%,
+  66%,
   88% {
     opacity: 1;
+    filter: blur(0);
     transform: translateY(0);
   }
 
   93% {
     opacity: 0;
+    filter: blur(4px);
     transform: translateY(-4px);
   }
 
   100% {
     opacity: 0;
+    filter: blur(4px);
     transform: translateY(-4px);
   }
 }
@@ -475,19 +500,27 @@ a {
   0%,
   65% {
     opacity: 0;
+    filter: blur(5px);
+    transform: translateY(8px);
   }
 
-  65.1%,
+  68%,
   82% {
     opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
   }
 
   88% {
     opacity: 0;
+    filter: blur(3px);
+    transform: translateY(-3px);
   }
 
   100% {
     opacity: 0;
+    filter: blur(3px);
+    transform: translateY(-3px);
   }
 }
 
@@ -495,16 +528,22 @@ a {
   0%,
   68% {
     opacity: 0;
+    filter: blur(5px);
+    transform: translateY(8px);
   }
 
-  68.1%,
+  71%,
   82% {
     opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
   }
 
   88%,
   100% {
     opacity: 0;
+    filter: blur(3px);
+    transform: translateY(-3px);
   }
 }
 
@@ -512,16 +551,22 @@ a {
   0%,
   71% {
     opacity: 0;
+    filter: blur(5px);
+    transform: translateY(8px);
   }
 
-  71.1%,
+  74%,
   82% {
     opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
   }
 
   88%,
   100% {
     opacity: 0;
+    filter: blur(3px);
+    transform: translateY(-3px);
   }
 }
 
