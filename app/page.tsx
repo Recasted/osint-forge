@@ -49,9 +49,9 @@ const workflow = [
 ];
 
 const plans = [
-  { name: "Core", credits: "200", price: "$4.99" },
-  { name: "Professional", credits: "450", price: "$14.99" },
-  { name: "Enterprise", credits: "1000", price: "$39.99" },
+  { name: "Core", credits: "200", price: "$4.99", tier: "tier-core" },
+  { name: "Professional", credits: "450", price: "$14.99", tier: "tier-professional" },
+  { name: "Enterprise", credits: "1000", price: "$39.99", tier: "tier-enterprise" },
 ];
 
 const creditPacks = [
@@ -339,7 +339,9 @@ export default function Home() {
           <div className="mt-10 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3" data-reveal>
             {plans.map((plan) => (
               <article key={plan.name} className="glow-card bg-[#080a0c] p-6">
-                <h3 className="text-2xl font-semibold">{plan.name}</h3>
+                <h3 className={`subscription-rank ${plan.tier} text-2xl font-semibold`}>
+                  {plan.name}
+                </h3>
                 <p className="mt-6 font-mono text-sm text-white/42">{plan.credits} credits</p>
                 <p className="mt-3 flex items-end gap-2 text-5xl font-semibold">
                   {plan.price}
