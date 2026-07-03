@@ -102,7 +102,7 @@ export default function Home() {
                 Community
               </a>
               <a
-                className="transition hover:text-white"
+                className="telegram-nav-link"
                 href="https://t.me/osintforgeupdates"
                 target="_blank"
                 rel="noreferrer"
@@ -110,7 +110,7 @@ export default function Home() {
                 Updates
               </a>
               <a
-                className="transition hover:text-white"
+                className="telegram-nav-link"
                 href="https://t.me/OsintForgeChat"
                 target="_blank"
                 rel="noreferrer"
@@ -362,7 +362,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer id="community" className="border-t border-white/10 bg-[#050607] px-5 py-8 sm:px-8 lg:px-10">
+      <footer id="community" className="relative z-30 border-t border-white/10 bg-[#050607] px-5 py-8 sm:px-8 lg:px-10">
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 md:flex-row md:items-center">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/42">
@@ -380,7 +380,7 @@ export default function Home() {
                 href={link.href}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center justify-center border border-white/16 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] transition hover:border-white hover:bg-white hover:text-black"
+                className="telegram-footer-link"
               >
                 {link.label}
               </a>
