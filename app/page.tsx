@@ -13,6 +13,16 @@ const poweredBy = [
   { name: "Have I Been Pwned", href: "https://haveibeenpwned.com/" },
 ];
 
+const previewRows = [
+  { label: "Identity profile", result: "resolved" },
+  { label: "Alias history", result: "6 aliases" },
+  { label: "Handle matches", result: "12 accounts" },
+  { label: "Email intel", result: "4 emails" },
+  { label: "Breach corpus", result: "11 breaches" },
+  { label: "Intel archives", result: "2 records" },
+  { label: "Source graph", result: "18 links" },
+];
+
 const capabilities = [
   {
     title: "Identity Resolution",
@@ -177,47 +187,91 @@ export default function Home() {
               </div>
             </div>
 
-            <aside className="glow-card border border-white/12 bg-[#07090a]/92 p-4 shadow-2xl shadow-black/50 backdrop-blur" data-reveal>
+            <aside className="glow-card search-preview border border-white/12 bg-[#07090a]/92 p-4 shadow-2xl shadow-black/50 backdrop-blur lg:self-end" data-reveal>
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#00e0aa]">
-                    Case Console
+                    Live Preview
                   </p>
-                  <h2 className="mt-2 text-xl font-semibold">Target cluster 7A</h2>
+                  <h2 className="mt-2 text-xl font-semibold">OSINT Forge search</h2>
                 </div>
                 <span className="border border-[#00e0aa]/40 px-3 py-1 text-xs font-bold text-[#00e0aa]">
-                  Live
+                  548ms
                 </span>
               </div>
 
-              <div className="mt-5 border border-white/10 bg-black p-4">
-                <div className="mb-4 flex items-center justify-between text-xs text-white/42">
-                  <span>Relationship graph</span>
-                  <span>confidence 91%</span>
+              <div className="mt-5 border border-white/10 bg-black p-4 font-mono">
+                <div className="flex items-center gap-2 text-xs text-white/42">
+                  <span className="size-2 bg-[#f0b35a]" />
+                  <span className="size-2 bg-white/18" />
+                  <span className="size-2 bg-white/18" />
+                  <span className="ml-3">osintforge - correlation engine</span>
                 </div>
-                <div className="relative h-72 overflow-hidden border border-white/10 bg-[#080d10]">
-                  <div className="absolute inset-0 bg-[linear-gradient(rgba(0,224,170,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(0,224,170,0.08)_1px,transparent_1px)] bg-[size:32px_32px]" />
-                  <span className="absolute left-[42%] top-[38%] size-16 border border-white/70 bg-white/12" />
-                  <span className="absolute left-[15%] top-[16%] size-10 border border-[#00e0aa]/70 bg-[#00e0aa]/12" />
-                  <span className="absolute right-[18%] top-[20%] size-12 border border-[#5f73ff]/80 bg-[#5f73ff]/14" />
-                  <span className="absolute bottom-[18%] left-[22%] size-12 border border-[#f0b35a]/70 bg-[#f0b35a]/12" />
-                  <span className="absolute bottom-[16%] right-[16%] size-9 border border-white/45 bg-white/10" />
-                  <span className="absolute left-[21%] top-[26%] h-px w-[210px] rotate-[18deg] bg-white/30" />
-                  <span className="absolute right-[24%] top-[34%] h-px w-[154px] rotate-[-22deg] bg-[#5f73ff]/60" />
-                  <span className="absolute bottom-[31%] left-[32%] h-px w-[160px] rotate-[-38deg] bg-[#f0b35a]/60" />
-                  <span className="absolute bottom-[30%] right-[22%] h-px w-[125px] rotate-[35deg] bg-white/30" />
-                </div>
-              </div>
 
-              <div className="mt-4 grid gap-3">
-                {["Alias reuse detected", "Registrant overlap", "Archive evidence sealed"].map(
-                  (item, index) => (
-                    <div key={item} className="flex items-center justify-between border border-white/10 bg-black px-4 py-3 text-sm">
-                      <span className="text-white/68">{item}</span>
-                      <span className="font-mono text-xs text-white/38">0{index + 1}</span>
+                <div className="mt-5 flex items-center justify-between gap-4 border-b border-[#f0b35a]/70 pb-3 text-sm">
+                  <p className="min-w-0 truncate text-white">
+                    <span className="text-[#f0b35a]">&gt;</span> search{" "}
+                    <span className="text-[#f0b35a]">person</span>{" "}
+                    <span className="text-white/90">alex.mercer@example.com</span>
+                    <span className="terminal-cursor" />
+                  </p>
+                  <span className="shrink-0 border border-[#f0b35a]/50 bg-[#f0b35a]/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#f0b35a]">
+                    Running
+                  </span>
+                </div>
+
+                <div className="search-progress mt-0 h-0.5 bg-[#f0b35a]" />
+
+                <div className="mt-4 grid gap-3">
+                  {previewRows.map((row, index) => (
+                    <div
+                      key={row.label}
+                      className="preview-row flex items-center justify-between gap-3"
+                      style={{ animationDelay: `${index * 180 + 180}ms` }}
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="grid size-6 shrink-0 place-items-center border border-white/38 text-[10px] text-[#f0b35a]">
+                          {index + 1}
+                        </span>
+                        <span className="truncate text-sm font-bold text-white/86">
+                          {row.label}
+                        </span>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-3 text-xs text-white/42">
+                        <span className="text-[#f0b35a]">ok</span>
+                        <span>{row.result}</span>
+                      </div>
                     </div>
-                  ),
-                )}
+                  ))}
+                </div>
+
+                <div className="correlated-card mt-5 border border-[#ff6a4a]/70 bg-[#241615]/80 p-4">
+                  <div className="mb-4 flex items-center justify-between border-b border-white/12 pb-3">
+                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white/58">
+                      Correlated profile
+                    </p>
+                    <span className="border border-white/14 px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white/46">
+                      Risk 10
+                    </span>
+                  </div>
+                  <div className="grid gap-3 text-xs text-white/42">
+                    <div className="preview-result-line grid grid-cols-[1fr_1fr_auto] gap-3">
+                      <span>matched user</span>
+                      <span>ak_sentry</span>
+                      <span>high</span>
+                    </div>
+                    <div className="preview-result-line grid grid-cols-[1fr_1fr_auto] gap-3">
+                      <span>breach overlap</span>
+                      <span>11 sources</span>
+                      <span>sealed</span>
+                    </div>
+                    <div className="preview-result-line grid grid-cols-[1fr_1fr_auto] gap-3">
+                      <span>export status</span>
+                      <span>brief ready</span>
+                      <span>docx</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </aside>
           </div>
