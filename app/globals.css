@@ -147,7 +147,7 @@ a {
 .search-progress {
   width: 0;
   box-shadow: 0 0 18px rgba(240, 179, 90, 0.55);
-  animation: search-progress 35s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  animation: search-progress 35s linear infinite;
 }
 
 .status-badge {
@@ -306,12 +306,20 @@ a {
     width: 0;
   }
 
-  18% {
+  24% {
     width: 16%;
   }
 
-  52% {
-    width: 88%;
+  32% {
+    width: 54%;
+  }
+
+  40% {
+    width: 82%;
+  }
+
+  58% {
+    width: 96%;
   }
 
   72%,
@@ -366,7 +374,8 @@ a {
 }
 
 @keyframes preview-row-1 {
-  0% {
+  0%,
+  7% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
@@ -389,13 +398,13 @@ a {
 
 @keyframes preview-row-2 {
   0%,
-  15% {
+  16% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  18%,
+  19%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -412,13 +421,13 @@ a {
 
 @keyframes preview-row-3 {
   0%,
-  22% {
+  25% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  25%,
+  28%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -435,13 +444,13 @@ a {
 
 @keyframes preview-row-4 {
   0%,
-  29% {
+  28% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  32%,
+  31%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -458,13 +467,13 @@ a {
 
 @keyframes preview-row-5 {
   0%,
-  35% {
+  31% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  38%,
+  34%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -481,13 +490,13 @@ a {
 
 @keyframes preview-row-6 {
   0%,
-  41% {
+  34% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  44%,
+  37%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -504,13 +513,13 @@ a {
 
 @keyframes preview-row-7 {
   0%,
-  48% {
+  38% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  51%,
+  41%,
   94% {
     opacity: 1;
     filter: blur(0);
