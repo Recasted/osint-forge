@@ -147,13 +147,37 @@ a {
 .search-progress {
   width: 0;
   box-shadow: 0 0 18px rgba(240, 179, 90, 0.55);
-  animation: search-progress 35s ease-in-out infinite;
+  animation: search-progress 35s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 
 .preview-row {
   opacity: 0;
   transform: translateY(8px);
-  animation: preview-row 35s ease-in-out infinite;
+  animation: preview-row-1 35s ease-in-out infinite;
+}
+
+.preview-row:nth-child(2) {
+  animation-name: preview-row-2;
+}
+
+.preview-row:nth-child(3) {
+  animation-name: preview-row-3;
+}
+
+.preview-row:nth-child(4) {
+  animation-name: preview-row-4;
+}
+
+.preview-row:nth-child(5) {
+  animation-name: preview-row-5;
+}
+
+.preview-row:nth-child(6) {
+  animation-name: preview-row-6;
+}
+
+.preview-row:nth-child(7) {
+  animation-name: preview-row-7;
 }
 
 .correlated-card {
@@ -259,33 +283,164 @@ a {
     width: 0;
   }
 
-  50%,
-  82% {
+  18% {
+    width: 18%;
+  }
+
+  52% {
+    width: 88%;
+  }
+
+  72%,
+  86% {
     width: 100%;
   }
 
+  92% {
+    width: 100%;
+    opacity: 1;
+  }
+
+  96%,
   100% {
     width: 0;
+    opacity: 0;
   }
 }
 
-@keyframes preview-row {
+@keyframes preview-row-1 {
   0% {
     opacity: 0;
     transform: translateY(8px);
   }
 
-  8%,
-  84% {
+  7%,
+  91% {
     opacity: 1;
     transform: translateY(0);
   }
 
-  92% {
+  94%,
+  100% {
     opacity: 0;
     transform: translateY(-4px);
   }
+}
 
+@keyframes preview-row-2 {
+  0%,
+  10% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  14%,
+  89% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  92%,
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes preview-row-3 {
+  0%,
+  15% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  19%,
+  87% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  90%,
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes preview-row-4 {
+  0%,
+  20% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  24%,
+  85% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  88%,
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes preview-row-5 {
+  0%,
+  25% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  29%,
+  83% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  86%,
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes preview-row-6 {
+  0%,
+  30% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  34%,
+  81% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  84%,
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes preview-row-7 {
+  0%,
+  35% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  39%,
+  79% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  82%,
   100% {
     opacity: 0;
     transform: translateY(-4px);
@@ -294,18 +449,18 @@ a {
 
 @keyframes correlated-card {
   0%,
-  42% {
+  38% {
     opacity: 0;
     transform: translateY(10px);
   }
 
-  50%,
-  86% {
+  46%,
+  88% {
     opacity: 1;
     transform: translateY(0);
   }
 
-  96% {
+  93% {
     opacity: 0;
     transform: translateY(-4px);
   }
@@ -318,16 +473,16 @@ a {
 
 @keyframes preview-result-line {
   0%,
-  12% {
+  10% {
     opacity: 0;
   }
 
-  20%,
-  78% {
+  16%,
+  82% {
     opacity: 1;
   }
 
-  92% {
+  88% {
     opacity: 0;
   }
 
