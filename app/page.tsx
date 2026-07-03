@@ -340,7 +340,10 @@ export default function Home() {
             {plans.map((plan) => (
               <article key={plan.name} className="glow-card bg-[#080a0c] p-6">
                 <h3 className={`subscription-rank ${plan.tier} text-2xl font-semibold`} data-rank={plan.name}>
-                  {plan.name}
+                  <span>{plan.name}</span>
+                  <i aria-hidden="true" />
+                  <i aria-hidden="true" />
+                  <i aria-hidden="true" />
                 </h3>
                 <p className="mt-6 font-mono text-sm text-white/42">{plan.credits} credits</p>
                 <p className="mt-3 flex items-end gap-2 text-5xl font-semibold">
