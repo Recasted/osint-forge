@@ -46,21 +46,19 @@ const creditPacks = [
 
 const faqs = [
   {
-    question: "Test FAQ question one",
+    question: "What is OSINT Forge?",
     answer:
-      "Test answer text you can replace later. Use this area for billing, credits, account access, or support details.",
+      "OSINT Forge is an all-in-one Open Source Intelligence (OSINT) platform that helps investigators search, correlate, and analyze publicly available information from multiple sources in a single workspace. Build intelligence reports, map relationships, and export findings without switching between dozens of different tools.",
   },
   {
     question: "Is the information private or hacked?",
     answer:
-      "No. OSINT Forge is designed to work with publicly available information and authorized data providers.
-        We do not promote or support unauthorized access to private systems or confidential data.
-        Results depend on the sources available at the time of your search..",
+      "No. OSINT Forge is designed to work with publicly available information and authorized data providers. We do not promote or support unauthorized access to private systems or confidential data. Results depend on the sources available at the time of your search.",
   },
   {
-    question: "Test FAQ question three",
+    question: "How do credits work?",
     answer:
-      "Test answer text you can replace later. Add product limits, refund notes, or support rules here.",
+      "Every search consumes investigation credits based on the tools and data sources used. More advanced searches require more credits than basic lookups. Unused subscription credits refresh with each billing cycle, and additional credit packs can be purchased at any time. All prices are shown excluding applicable taxes.",
   },
 ];
 
