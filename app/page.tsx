@@ -51,9 +51,11 @@ const faqs = [
       "Test answer text you can replace later. Use this area for billing, credits, account access, or support details.",
   },
   {
-    question: "Test FAQ question two",
+    question: "Is the information private or hacked?",
     answer:
-      "Test answer text you can replace later. This click menu keeps longer answers tucked away until someone opens them.",
+      "No. OSINT Forge is designed to work with publicly available information and authorized data providers.
+        We do not promote or support unauthorized access to private systems or confidential data.
+        Results depend on the sources available at the time of your search..",
   },
   {
     question: "Test FAQ question three",
