@@ -372,7 +372,7 @@ a {
     transform: translateY(14px);
   }
 
-  11%,
+  10%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -389,13 +389,13 @@ a {
 
 @keyframes preview-row-2 {
   0%,
-  19% {
+  15% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  22%,
+  18%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -412,13 +412,13 @@ a {
 
 @keyframes preview-row-3 {
   0%,
-  32% {
+  22% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  35%,
+  25%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -435,13 +435,13 @@ a {
 
 @keyframes preview-row-4 {
   0%,
-  39% {
+  29% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  42%,
+  32%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -458,13 +458,13 @@ a {
 
 @keyframes preview-row-5 {
   0%,
-  45% {
+  35% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  48%,
+  38%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -481,13 +481,13 @@ a {
 
 @keyframes preview-row-6 {
   0%,
-  49% {
+  41% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  52%,
+  44%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -504,13 +504,13 @@ a {
 
 @keyframes preview-row-7 {
   0%,
-  52% {
+  48% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  55%,
+  51%,
   94% {
     opacity: 1;
     filter: blur(0);
