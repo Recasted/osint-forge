@@ -35,28 +35,6 @@ a {
   text-underline-offset: 4px;
 }
 
-.telegram-nav-link {
-  border: 1px solid rgba(0, 224, 170, 0.35);
-  background: rgba(0, 224, 170, 0.08);
-  padding: 8px 10px;
-  color: #9fffe7;
-  box-shadow: 0 0 18px rgba(0, 224, 170, 0.12);
-  transition:
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    color 180ms ease,
-    background-color 180ms ease;
-}
-
-.telegram-nav-link:hover {
-  border-color: rgba(159, 255, 231, 0.85);
-  background: rgba(95, 115, 255, 0.16);
-  color: #ffffff;
-  box-shadow:
-    0 0 18px rgba(0, 224, 170, 0.3),
-    0 0 28px rgba(95, 115, 255, 0.2);
-}
-
 .telegram-footer-link {
   display: inline-flex;
   align-items: center;
