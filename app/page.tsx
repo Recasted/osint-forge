@@ -2,9 +2,15 @@ import { InteractiveEffects } from "./interactive-effects";
 import { ToolSidebar } from "./tool-sidebar";
 
 const stats = [
-  { value: "120+", label: "Open-source connectors" },
-  { value: "4.8k", label: "Entities resolved per case" },
+  { value: "2,000+", label: "Open-source sources" },
+  { value: "600B+", label: "Records indexed" },
   { value: "96%", label: "Evidence confidence scoring" },
+];
+
+const poweredBy = [
+  "OsintCat",
+  "OSINT Solutions",
+  "Have I Been Pwned",
 ];
 
 const capabilities = [
@@ -163,6 +169,21 @@ export default function Home() {
                     </p>
                   </div>
                 ))}
+              </div>
+
+              <div className="mt-4 max-w-3xl" data-reveal>
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-white/42">
+                  Powered by
+                </p>
+                <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-3">
+                  {poweredBy.map((source) => (
+                    <div key={source} className="glow-card bg-[#07090a] p-4">
+                      <p className="text-sm font-bold uppercase tracking-[0.14em] text-white">
+                        {source}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
