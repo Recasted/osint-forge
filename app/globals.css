@@ -161,7 +161,7 @@ a {
     0 0 18px color-mix(in srgb, var(--tier-color) 88%, transparent);
   opacity: 0;
   transform: translate(-50%, -50%);
-  animation: rank-mouse-spark 2.4s ease-out infinite;
+  animation: rank-mouse-spark 1.35s ease-out infinite;
 }
 
 .subscription-rank i:nth-of-type(1) {
@@ -177,7 +177,7 @@ a {
   top: 28%;
   --spark-x: 12px;
   --spark-y: -10px;
-  animation-delay: 720ms;
+  animation-delay: 180ms;
 }
 
 .subscription-rank i:nth-of-type(3) {
@@ -185,7 +185,31 @@ a {
   top: 72%;
   --spark-x: 9px;
   --spark-y: 12px;
-  animation-delay: 1420ms;
+  animation-delay: 360ms;
+}
+
+.subscription-rank i:nth-of-type(4) {
+  left: 38%;
+  top: 76%;
+  --spark-x: -13px;
+  --spark-y: 9px;
+  animation-delay: 540ms;
+}
+
+.subscription-rank i:nth-of-type(5) {
+  left: 50%;
+  top: 10%;
+  --spark-x: 6px;
+  --spark-y: -15px;
+  animation-delay: 720ms;
+}
+
+.subscription-rank i:nth-of-type(6) {
+  left: 8%;
+  top: 62%;
+  --spark-x: -10px;
+  --spark-y: 11px;
+  animation-delay: 900ms;
 }
 
 .tier-core {
