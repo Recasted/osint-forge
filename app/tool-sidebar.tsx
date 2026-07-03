@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const tools = [
   { label: "Home", short: "HM", href: "/" },
   { label: "People Search", short: "PE", href: "/tools/people/" },
@@ -25,4 +27,3 @@ export function ToolSidebar() {
     </aside>
   );
 }
-import Link from "next/link";
