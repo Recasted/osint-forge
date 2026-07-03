@@ -131,39 +131,41 @@ a {
 .subscription-rank {
   position: relative;
   display: inline-block;
-  color: var(--tier-color);
+  color: transparent;
+  background:
+    linear-gradient(
+      110deg,
+      var(--tier-color) 0%,
+      var(--tier-color) 28%,
+      var(--tier-spark) 42%,
+      #ffffff 49%,
+      var(--tier-spark) 56%,
+      var(--tier-color) 70%,
+      var(--tier-color) 100%
+    );
+  background-clip: text;
+  background-size: 260% 100%;
   text-shadow:
     0 0 14px color-mix(in srgb, var(--tier-color) 42%, transparent),
     0 0 26px color-mix(in srgb, var(--tier-spark) 22%, transparent);
-}
-
-.subscription-rank::before,
-.subscription-rank::after {
-  pointer-events: none;
-  position: absolute;
-  content: "";
-  border-radius: 999px;
-  background: var(--tier-spark);
-  box-shadow:
-    0 0 8px var(--tier-spark),
-    0 0 14px color-mix(in srgb, var(--tier-color) 70%, transparent);
+  animation: rank-text-sparkle 2.2s linear infinite;
 }
 
 .subscription-rank::before {
-  top: 0.08em;
-  right: -0.85em;
-  width: 4px;
-  height: 4px;
-  animation: rank-sparkle-primary 1.8s ease-in-out infinite;
-}
-
-.subscription-rank::after {
-  right: -1.15em;
-  bottom: 0.22em;
-  width: 2px;
-  height: 2px;
-  opacity: 0.85;
-  animation: rank-sparkle-secondary 1.8s ease-in-out infinite 520ms;
+  position: absolute;
+  inset: -0.16em -0.08em;
+  pointer-events: none;
+  content: attr(data-rank);
+  color: transparent;
+  background:
+    radial-gradient(circle at 16% 45%, #ffffff 0 0.055em, transparent 0.08em),
+    radial-gradient(circle at 42% 25%, var(--tier-spark) 0 0.045em, transparent 0.075em),
+    radial-gradient(circle at 68% 55%, #ffffff 0 0.05em, transparent 0.08em),
+    radial-gradient(circle at 88% 35%, var(--tier-spark) 0 0.04em, transparent 0.07em);
+  background-clip: text;
+  filter: drop-shadow(0 0 7px var(--tier-spark));
+  opacity: 0.95;
+  animation: rank-text-twinkle 1.35s steps(2, end) infinite;
 }
 
 .tier-core {
@@ -384,49 +386,52 @@ a {
   }
 }
 
-@keyframes rank-sparkle-primary {
-  0%,
+@keyframes rank-text-sparkle {
+  0% {
+    background-position: 140% 0;
+    text-shadow:
+      0 0 10px color-mix(in srgb, var(--tier-color) 36%, transparent),
+      0 0 20px color-mix(in srgb, var(--tier-spark) 18%, transparent);
+  }
+
+  45% {
+    text-shadow:
+      0 0 16px color-mix(in srgb, var(--tier-color) 58%, transparent),
+      0 0 30px color-mix(in srgb, var(--tier-spark) 32%, transparent);
+  }
+
   100% {
-    opacity: 0.45;
-    transform: scale(0.72);
-    box-shadow:
-      0 0 4px var(--tier-spark),
-      0 0 8px color-mix(in srgb, var(--tier-color) 48%, transparent);
-  }
-
-  35% {
-    opacity: 1;
-    transform: scale(1.45);
-    box-shadow:
-      0 0 9px var(--tier-spark),
-      0 0 18px color-mix(in srgb, var(--tier-color) 86%, transparent),
-      0 0 28px color-mix(in srgb, var(--tier-spark) 46%, transparent);
-  }
-
-  62% {
-    opacity: 0.65;
-    transform: scale(0.95);
+    background-position: -140% 0;
+    text-shadow:
+      0 0 10px color-mix(in srgb, var(--tier-color) 36%, transparent),
+      0 0 20px color-mix(in srgb, var(--tier-spark) 18%, transparent);
   }
 }
 
-@keyframes rank-sparkle-secondary {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: translate(0, 0) scale(0.7);
+@keyframes rank-text-twinkle {
+  0% {
+    opacity: 0.38;
+    transform: translateX(-0.02em);
   }
 
-  42% {
+  25% {
     opacity: 1;
-    transform: translate(2px, -2px) scale(1.65);
-    box-shadow:
-      0 0 8px var(--tier-spark),
-      0 0 15px color-mix(in srgb, var(--tier-color) 76%, transparent);
+    transform: translateX(0.02em);
   }
 
-  72% {
+  50% {
     opacity: 0.55;
-    transform: translate(-1px, 1px) scale(0.9);
+    transform: translateX(0);
+  }
+
+  75% {
+    opacity: 0.92;
+    transform: translateX(-0.01em);
+  }
+
+  100% {
+    opacity: 0.42;
+    transform: translateX(0.01em);
   }
 }
 
@@ -887,8 +892,8 @@ a {
   }
 
   .terminal-cursor,
+  .subscription-rank,
   .subscription-rank::before,
-  .subscription-rank::after,
   .search-progress,
   .status-running,
   .status-complete,
