@@ -187,7 +187,7 @@ export default function Home() {
               </div>
             </div>
 
-            <aside className="glow-card search-preview border border-white/12 bg-[#07090a]/92 p-4 shadow-2xl shadow-black/50 backdrop-blur lg:self-end" data-reveal>
+            <aside className="glow-card search-preview border border-white/12 bg-[#07090a]/92 p-4 shadow-2xl shadow-black/50 backdrop-blur lg:self-center" data-reveal>
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#00e0aa]">
