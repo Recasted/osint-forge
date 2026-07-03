@@ -128,6 +128,57 @@ a {
   transform: translateY(-2px);
 }
 
+.subscription-rank {
+  position: relative;
+  display: inline-block;
+  color: var(--tier-color);
+  text-shadow:
+    0 0 14px color-mix(in srgb, var(--tier-color) 42%, transparent),
+    0 0 26px color-mix(in srgb, var(--tier-spark) 22%, transparent);
+}
+
+.subscription-rank::before,
+.subscription-rank::after {
+  pointer-events: none;
+  position: absolute;
+  content: "";
+  border-radius: 999px;
+  background: var(--tier-spark);
+  box-shadow:
+    0 0 8px var(--tier-spark),
+    0 0 14px color-mix(in srgb, var(--tier-color) 70%, transparent);
+}
+
+.subscription-rank::before {
+  top: 0.08em;
+  right: -0.85em;
+  width: 4px;
+  height: 4px;
+}
+
+.subscription-rank::after {
+  right: -1.15em;
+  bottom: 0.22em;
+  width: 2px;
+  height: 2px;
+  opacity: 0.85;
+}
+
+.tier-core {
+  --tier-color: #90e7a5;
+  --tier-spark: #c3ffd0;
+}
+
+.tier-professional {
+  --tier-color: #82a7f3;
+  --tier-spark: #c4d7ff;
+}
+
+.tier-enterprise {
+  --tier-color: #a875f0;
+  --tier-spark: #dcc0ff;
+}
+
 .search-preview {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 26%),
