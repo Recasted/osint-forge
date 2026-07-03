@@ -318,11 +318,10 @@ a {
     width: 82%;
   }
 
-  50% {
-    width: 96%;
+  43% {
+    width: 100%;
   }
 
-  72%,
   92% {
     width: 100%;
   }
@@ -341,12 +340,12 @@ a {
 
 @keyframes status-running {
   0%,
-  78% {
+  42% {
     opacity: 1;
     filter: blur(0);
   }
 
-  82%,
+  46%,
   100% {
     opacity: 0;
     filter: blur(3px);
@@ -355,12 +354,12 @@ a {
 
 @keyframes status-complete {
   0%,
-  78% {
+  42% {
     opacity: 0;
     filter: blur(3px);
   }
 
-  82%,
+  46%,
   94% {
     opacity: 1;
     filter: blur(0);
