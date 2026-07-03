@@ -284,7 +284,7 @@ a {
   }
 
   18% {
-    width: 18%;
+    width: 16%;
   }
 
   52% {
@@ -315,7 +315,7 @@ a {
     transform: translateY(14px);
   }
 
-  11%,
+  10%,
   91% {
     opacity: 1;
     filter: blur(0);
@@ -332,13 +332,13 @@ a {
 
 @keyframes preview-row-2 {
   0%,
-  18% {
+  19% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  21%,
+  22%,
   89% {
     opacity: 1;
     filter: blur(0);
@@ -355,13 +355,13 @@ a {
 
 @keyframes preview-row-3 {
   0%,
-  28% {
+  32% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  31%,
+  34.5%,
   87% {
     opacity: 1;
     filter: blur(0);
@@ -378,13 +378,13 @@ a {
 
 @keyframes preview-row-4 {
   0%,
-  36% {
+  39% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  39%,
+  41%,
   85% {
     opacity: 1;
     filter: blur(0);
@@ -401,13 +401,13 @@ a {
 
 @keyframes preview-row-5 {
   0%,
-  43% {
+  45% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  45.5%,
+  47%,
   83% {
     opacity: 1;
     filter: blur(0);
@@ -424,13 +424,13 @@ a {
 
 @keyframes preview-row-6 {
   0%,
-  48% {
+  49% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  50.5%,
+  51%,
   81% {
     opacity: 1;
     filter: blur(0);
@@ -447,13 +447,13 @@ a {
 
 @keyframes preview-row-7 {
   0%,
-  58% {
+  60% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  61%,
+  63%,
   79% {
     opacity: 1;
     filter: blur(0);
@@ -470,13 +470,13 @@ a {
 
 @keyframes correlated-card {
   0%,
-  62% {
+  68% {
     opacity: 0;
     filter: blur(8px);
     transform: translateY(16px);
   }
 
-  66%,
+  72%,
   88% {
     opacity: 1;
     filter: blur(0);
@@ -498,13 +498,13 @@ a {
 
 @keyframes preview-result-line-1 {
   0%,
-  65% {
+  71% {
     opacity: 0;
     filter: blur(5px);
     transform: translateY(8px);
   }
 
-  68%,
+  74%,
   82% {
     opacity: 1;
     filter: blur(0);
@@ -526,13 +526,13 @@ a {
 
 @keyframes preview-result-line-2 {
   0%,
-  68% {
+  74% {
     opacity: 0;
     filter: blur(5px);
     transform: translateY(8px);
   }
 
-  71%,
+  77%,
   82% {
     opacity: 1;
     filter: blur(0);
@@ -549,13 +549,13 @@ a {
 
 @keyframes preview-result-line-3 {
   0%,
-  71% {
+  77% {
     opacity: 0;
     filter: blur(5px);
     transform: translateY(8px);
   }
 
-  74%,
+  80%,
   82% {
     opacity: 1;
     filter: blur(0);
