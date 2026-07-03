@@ -91,7 +91,7 @@ export default function Home() {
       <section className="relative overflow-hidden border-b border-white/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_16%,rgba(64,92,255,0.28),transparent_28%),radial-gradient(circle_at_20%_80%,rgba(0,224,170,0.14),transparent_26%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:44px_44px]" />
-        <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-4 sm:px-8 lg:px-10">
+        <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col px-3 py-4 sm:px-8 lg:px-10">
           <header className="flex items-center justify-between gap-3 border border-white/10 bg-black/30 px-3 py-3 backdrop-blur sm:gap-5 sm:px-4">
             <a href="#" className="flex items-center gap-3" aria-label="OSINT Forge home">
               <span className="grid size-9 place-items-center bg-[#f3f4f0] text-sm font-black text-[#050607]">
@@ -126,12 +126,12 @@ export default function Home() {
             </a>
           </header>
 
-          <div className="grid flex-1 items-start gap-8 py-8 sm:py-12 lg:grid-cols-[minmax(0,1fr)_470px] lg:gap-12">
-            <div className="lg:pt-4" data-reveal>
+          <div className="grid min-w-0 flex-1 items-start gap-7 py-7 sm:gap-8 sm:py-12 lg:grid-cols-[minmax(0,1fr)_470px] lg:gap-12">
+            <div className="min-w-0 lg:pt-4" data-reveal>
               <p className="mb-4 inline-flex border border-[#5f73ff]/50 bg-[#5f73ff]/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#aeb8ff] sm:mb-5 sm:text-xs sm:tracking-[0.2em]">
                 OSINT intelligence platform
               </p>
-              <h1 className="max-w-4xl text-[clamp(2.45rem,12vw,4.6rem)] font-semibold leading-[1.02] tracking-normal text-white lg:text-8xl">
+              <h1 className="max-w-4xl text-[clamp(2rem,10.5vw,4.6rem)] font-semibold leading-[1.04] tracking-normal text-white sm:leading-[1.02] lg:text-8xl">
                 Investigate anyone. Map anything. Prove every link.
               </h1>
               <p className="mt-5 max-w-2xl text-sm leading-7 text-white/62 sm:mt-7 sm:text-lg sm:leading-8">
@@ -187,7 +187,7 @@ export default function Home() {
               </div>
             </div>
 
-            <aside className="glow-card search-preview border border-white/12 bg-[#07090a]/92 p-3 shadow-2xl shadow-black/50 backdrop-blur sm:p-4 lg:mt-28" data-reveal>
+            <aside className="glow-card search-preview min-w-0 border border-white/12 bg-[#07090a]/92 p-3 shadow-2xl shadow-black/50 backdrop-blur sm:p-4 lg:mt-28" data-reveal>
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#00e0aa]">
@@ -208,7 +208,7 @@ export default function Home() {
                   <span className="ml-3">osintforge - correlation engine</span>
                 </div>
 
-                <div className="mt-5 flex items-center justify-between gap-4 border-b border-[#f0b35a]/70 pb-3 text-sm">
+                <div className="mt-5 flex items-center justify-between gap-3 border-b border-[#f0b35a]/70 pb-3 text-sm sm:gap-4">
                   <p className="min-w-0 truncate text-white">
                     <span className="text-[#f0b35a]">&gt;</span> search{" "}
                     <span className="text-[#f0b35a]">person</span>{" "}
@@ -237,7 +237,7 @@ export default function Home() {
                           {row.label}
                         </span>
                       </div>
-                      <div className="flex shrink-0 items-center gap-3 text-xs text-white/42">
+                      <div className="preview-row-result flex shrink-0 items-center gap-3 text-xs text-white/42">
                         <span className="text-[#f0b35a]">ok</span>
                         <span>{row.result}</span>
                       </div>
@@ -278,23 +278,23 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="capabilities" className="border-b border-white/10 px-5 py-20 sm:px-8 lg:px-10">
+      <section id="capabilities" className="border-b border-white/10 px-3 py-14 sm:px-8 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-8 lg:grid-cols-[0.75fr_1fr]">
             <div data-reveal>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00e0aa]">
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#00e0aa] sm:text-xs sm:tracking-[0.2em]">
                 Capabilities
               </p>
-              <h2 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">
+              <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-5xl">
                 Built for investigators who need answers, not another tab stack.
               </h2>
             </div>
             <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-2" data-reveal>
               {capabilities.map((item) => (
-                <article key={item.title} className="glow-card bg-[#080a0c] p-6">
-                  <div className="mb-8 h-1 w-16 bg-[#5f73ff]" />
-                  <h3 className="text-xl font-semibold text-white">{item.title}</h3>
-                  <p className="mt-4 text-sm leading-7 text-white/54">{item.copy}</p>
+                <article key={item.title} className="glow-card bg-[#080a0c] p-4 sm:p-6">
+                  <div className="mb-5 h-1 w-14 bg-[#5f73ff] sm:mb-8 sm:w-16" />
+                  <h3 className="text-lg font-semibold text-white sm:text-xl">{item.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-white/54 sm:mt-4 sm:leading-7">{item.copy}</p>
                 </article>
               ))}
             </div>
@@ -302,16 +302,16 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="workflow" className="border-b border-white/10 bg-[#080a0c] px-5 py-20 sm:px-8 lg:px-10">
+      <section id="workflow" className="border-b border-white/10 bg-[#080a0c] px-3 py-14 sm:px-8 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00e0aa]" data-reveal>
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#00e0aa] sm:text-xs sm:tracking-[0.2em]" data-reveal>
             Process
           </p>
           <div className="mt-8 grid gap-px overflow-hidden border border-white/10 bg-white/10 lg:grid-cols-3" data-reveal>
             {workflow.map((step, index) => (
-              <div key={step} className="glow-card bg-[#050607] p-7">
+              <div key={step} className="glow-card bg-[#050607] p-4 sm:p-7">
                 <p className="font-mono text-sm text-[#5f73ff]">0{index + 1}</p>
-                <p className="mt-8 text-xl leading-8 text-white/78">{step}</p>
+                <p className="mt-5 text-base leading-7 text-white/78 sm:mt-8 sm:text-xl sm:leading-8">{step}</p>
               </div>
             ))}
           </div>

@@ -688,12 +688,34 @@ a {
 }
 
 @media (max-width: 42rem) {
+  body {
+    width: 100%;
+  }
+
   .cursor-glow {
     display: none;
   }
 
   .search-preview {
     max-width: 100%;
+    overflow: hidden;
+  }
+
+  .search-preview h2 {
+    font-size: 16px;
+  }
+
+  .search-preview [class*="tracking-"] {
+    letter-spacing: 0.1em;
+  }
+
+  .search-preview .terminal-cursor {
+    width: 5px;
+    height: 12px;
+  }
+
+  .search-preview .font-mono {
+    min-width: 0;
   }
 
   .search-preview .status-badge {
@@ -706,14 +728,24 @@ a {
 
   .search-preview .preview-row {
     gap: 8px;
+    min-width: 0;
   }
 
   .search-preview .preview-row span {
     font-size: 11px;
   }
 
+  .search-preview .preview-row > div:first-child {
+    min-width: 0;
+    gap: 8px;
+  }
+
   .search-preview .preview-row > div:last-child {
     gap: 6px;
+  }
+
+  .search-preview .preview-row-result span:last-child {
+    display: none;
   }
 
   .search-preview .correlated-card {
