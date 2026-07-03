@@ -1,4 +1,5 @@
 import { InteractiveEffects } from "./interactive-effects";
+import { ToolSidebar } from "./tool-sidebar";
 
 const stats = [
   { value: "120+", label: "Open-source connectors" },
@@ -70,6 +71,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#050607] text-[#f3f4f0]">
       <InteractiveEffects />
+      <ToolSidebar />
       <section className="relative overflow-hidden border-b border-white/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_16%,rgba(64,92,255,0.28),transparent_28%),radial-gradient(circle_at_20%_80%,rgba(0,224,170,0.14),transparent_26%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:44px_44px]" />
@@ -138,7 +140,7 @@ export default function Home() {
 
               <div className="mt-10 grid max-w-3xl gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-3" data-reveal>
                 {stats.map((stat) => (
-                  <div key={stat.label} className="bg-[#07090a] p-5">
+                  <div key={stat.label} className="glow-card bg-[#07090a] p-5">
                     <p className="text-3xl font-semibold text-white">{stat.value}</p>
                     <p className="mt-2 text-xs uppercase leading-5 tracking-[0.14em] text-white/46">
                       {stat.label}
@@ -148,7 +150,7 @@ export default function Home() {
               </div>
             </div>
 
-            <aside className="border border-white/12 bg-[#07090a]/92 p-4 shadow-2xl shadow-black/50 backdrop-blur" data-reveal>
+            <aside className="glow-card border border-white/12 bg-[#07090a]/92 p-4 shadow-2xl shadow-black/50 backdrop-blur" data-reveal>
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#00e0aa]">
@@ -208,7 +210,7 @@ export default function Home() {
             </div>
             <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-2" data-reveal>
               {capabilities.map((item) => (
-                <article key={item.title} className="bg-[#080a0c] p-6">
+                <article key={item.title} className="glow-card bg-[#080a0c] p-6">
                   <div className="mb-8 h-1 w-16 bg-[#5f73ff]" />
                   <h3 className="text-xl font-semibold text-white">{item.title}</h3>
                   <p className="mt-4 text-sm leading-7 text-white/54">{item.copy}</p>
@@ -226,7 +228,7 @@ export default function Home() {
           </p>
           <div className="mt-8 grid gap-px overflow-hidden border border-white/10 bg-white/10 lg:grid-cols-3" data-reveal>
             {workflow.map((step, index) => (
-              <div key={step} className="bg-[#050607] p-7">
+              <div key={step} className="glow-card bg-[#050607] p-7">
                 <p className="font-mono text-sm text-[#5f73ff]">0{index + 1}</p>
                 <p className="mt-8 text-xl leading-8 text-white/78">{step}</p>
               </div>
@@ -255,10 +257,15 @@ export default function Home() {
 
           <div className="mt-10 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3" data-reveal>
             {plans.map((plan) => (
-              <article key={plan.name} className="bg-[#080a0c] p-6">
+              <article key={plan.name} className="glow-card bg-[#080a0c] p-6">
                 <h3 className="text-2xl font-semibold">{plan.name}</h3>
                 <p className="mt-6 font-mono text-sm text-white/42">{plan.credits} credits</p>
-                <p className="mt-3 text-5xl font-semibold">{plan.price}</p>
+                <p className="mt-3 flex items-end gap-2 text-5xl font-semibold">
+                  {plan.price}
+                  <span className="pb-1 text-sm font-bold uppercase tracking-[0.16em] text-white/42">
+                    /mo
+                  </span>
+                </p>
                 <a
                   href="#"
                   className="mt-8 inline-flex w-full items-center justify-center border border-white/16 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] transition hover:border-white hover:bg-white hover:text-black"
@@ -270,7 +277,7 @@ export default function Home() {
           </div>
 
           <div className="mt-10 grid gap-6 lg:grid-cols-[0.8fr_1fr]" data-reveal>
-            <aside className="border border-[#00e0aa]/40 bg-[#00e0aa]/10 p-6">
+            <aside className="glow-card border border-[#00e0aa]/40 bg-[#00e0aa]/10 p-6">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00e0aa]">
                 Credit rules
               </p>
@@ -290,7 +297,7 @@ export default function Home() {
               </p>
               <div className="mt-5 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3">
                 {creditPacks.map((pack) => (
-                  <article key={pack.name} className="bg-[#050607] p-5">
+                  <article key={pack.name} className="glow-card bg-[#050607] p-5">
                     <h3 className="text-xl font-semibold">{pack.name}</h3>
                     <p className="mt-5 font-mono text-sm text-white/42">
                       {pack.credits} extra credits
@@ -323,7 +330,7 @@ export default function Home() {
 
           <div className="space-y-3" data-reveal>
             {faqs.map((faq) => (
-              <details key={faq.question} className="group border border-white/10 bg-[#050607] p-5">
+              <details key={faq.question} className="glow-card group border border-white/10 bg-[#050607] p-5">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-5 text-lg font-semibold text-white">
                   <span>{faq.question}</span>
                   <span className="grid size-9 shrink-0 place-items-center border border-white/16 font-mono text-sm text-[#00e0aa] transition group-open:rotate-45">
