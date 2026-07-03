@@ -8,9 +8,9 @@ const stats = [
 ];
 
 const poweredBy = [
-  "OsintCat",
-  "OSINT Solutions",
-  "Have I Been Pwned",
+  { name: "OsintCat", href: "https://www.osintcat.net/" },
+  { name: "OSINT Solutions", href: "https://osintsolutions.org/home" },
+  { name: "Have I Been Pwned", href: "https://haveibeenpwned.com/" },
 ];
 
 const capabilities = [
@@ -177,11 +177,17 @@ export default function Home() {
                 </p>
                 <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-3">
                   {poweredBy.map((source) => (
-                    <div key={source} className="glow-card bg-[#07090a] p-4">
+                    <a
+                      key={source.name}
+                      href={source.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="glow-card block bg-[#07090a] p-4 transition"
+                    >
                       <p className="text-sm font-bold uppercase tracking-[0.14em] text-white">
-                        {source}
+                        {source.name}
                       </p>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
