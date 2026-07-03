@@ -339,7 +339,7 @@ export default function Home() {
           <div className="mt-10 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3" data-reveal>
             {plans.map((plan) => (
               <article key={plan.name} className="glow-card bg-[#080a0c] p-6">
-                <h3 className={`subscription-rank ${plan.tier} text-2xl font-semibold`}>
+                <h3 className={`subscription-rank ${plan.tier} text-2xl font-semibold`} data-rank={plan.name}>
                   {plan.name}
                 </h3>
                 <p className="mt-6 font-mono text-sm text-white/42">{plan.credits} credits</p>
