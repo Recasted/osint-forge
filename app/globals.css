@@ -74,9 +74,9 @@ a {
   position: fixed;
   inset: 0;
   z-index: 20;
-  background: radial-gradient(circle at var(--cursor-x) var(--cursor-y), rgba(255, 255, 255, 0.16), transparent 9rem);
+  background: radial-gradient(circle at var(--cursor-x) var(--cursor-y), rgba(0, 224, 170, 0.18), transparent 5.5rem);
   mix-blend-mode: screen;
-  opacity: 0.72;
+  opacity: 0.62;
 }
 
 .cursor-spark {
@@ -147,7 +147,7 @@ a {
 .search-progress {
   width: 0;
   box-shadow: 0 0 18px rgba(240, 179, 90, 0.55);
-  animation: search-progress 35s linear infinite;
+  animation: search-progress 26s linear infinite;
 }
 
 .status-badge {
@@ -164,19 +164,19 @@ a {
 }
 
 .status-running {
-  animation: status-running 35s ease-in-out infinite;
+  animation: status-running 26s ease-in-out infinite;
 }
 
 .status-complete {
   opacity: 0;
   color: #9fffe7;
-  animation: status-complete 35s ease-in-out infinite;
+  animation: status-complete 26s ease-in-out infinite;
 }
 
 .preview-row {
   opacity: 0;
   transform: translateY(8px);
-  animation: preview-row-1 35s ease-in-out infinite;
+  animation: preview-row-1 26s ease-in-out infinite;
 }
 
 .preview-row:nth-child(2) {
@@ -208,12 +208,12 @@ a {
   box-shadow:
     0 0 0 1px rgba(255, 106, 74, 0.12),
     0 0 32px rgba(255, 106, 74, 0.1);
-  animation: correlated-card 35s ease-in-out infinite;
+  animation: correlated-card 26s ease-in-out infinite;
 }
 
 .preview-result-line {
   opacity: 0;
-  animation: preview-result-line-1 35s ease-in-out infinite;
+  animation: preview-result-line-1 26s ease-in-out infinite;
 }
 
 .preview-result-line:nth-child(1) {
@@ -306,19 +306,19 @@ a {
     width: 0;
   }
 
-  24% {
+  18% {
     width: 16%;
   }
 
-  32% {
+  26% {
     width: 54%;
   }
 
-  40% {
+  34% {
     width: 82%;
   }
 
-  58% {
+  50% {
     width: 96%;
   }
 
@@ -375,13 +375,13 @@ a {
 
 @keyframes preview-row-1 {
   0%,
-  7% {
+  4% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  10%,
+  7%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -398,13 +398,13 @@ a {
 
 @keyframes preview-row-2 {
   0%,
-  16% {
+  11% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  19%,
+  14%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -421,13 +421,13 @@ a {
 
 @keyframes preview-row-3 {
   0%,
-  25% {
+  18% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  28%,
+  21%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -444,13 +444,13 @@ a {
 
 @keyframes preview-row-4 {
   0%,
-  28% {
+  22% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  31%,
+  25%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -467,13 +467,13 @@ a {
 
 @keyframes preview-row-5 {
   0%,
-  31% {
+  26% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  34%,
+  29%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -489,6 +489,29 @@ a {
 }
 
 @keyframes preview-row-6 {
+  0%,
+  30% {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(14px);
+  }
+
+  33%,
+  94% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+
+  98%,
+  100% {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes preview-row-7 {
   0%,
   34% {
     opacity: 0;
@@ -511,38 +534,15 @@ a {
   }
 }
 
-@keyframes preview-row-7 {
-  0%,
-  38% {
-    opacity: 0;
-    filter: blur(6px);
-    transform: translateY(14px);
-  }
-
-  41%,
-  94% {
-    opacity: 1;
-    filter: blur(0);
-    transform: translateY(0);
-  }
-
-  98%,
-  100% {
-    opacity: 0;
-    filter: blur(4px);
-    transform: translateY(-4px);
-  }
-}
-
 @keyframes correlated-card {
   0%,
-  68% {
+  40% {
     opacity: 0;
     filter: blur(8px);
     transform: translateY(16px);
   }
 
-  72%,
+  43%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -564,13 +564,13 @@ a {
 
 @keyframes preview-result-line-1 {
   0%,
-  71% {
+  43% {
     opacity: 0;
     filter: blur(5px);
     transform: translateY(8px);
   }
 
-  74%,
+  46%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -592,13 +592,13 @@ a {
 
 @keyframes preview-result-line-2 {
   0%,
-  74% {
+  46% {
     opacity: 0;
     filter: blur(5px);
     transform: translateY(8px);
   }
 
-  77%,
+  49%,
   94% {
     opacity: 1;
     filter: blur(0);
@@ -615,13 +615,13 @@ a {
 
 @keyframes preview-result-line-3 {
   0%,
-  77% {
+  49% {
     opacity: 0;
     filter: blur(5px);
     transform: translateY(8px);
   }
 
-  80%,
+  52%,
   94% {
     opacity: 1;
     filter: blur(0);
