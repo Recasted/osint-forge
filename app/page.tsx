@@ -344,6 +344,9 @@ export default function Home() {
                   <i aria-hidden="true" />
                   <i aria-hidden="true" />
                   <i aria-hidden="true" />
+                  <i aria-hidden="true" />
+                  <i aria-hidden="true" />
+                  <i aria-hidden="true" />
                 </h3>
                 <p className="mt-6 font-mono text-sm text-white/42">{plan.credits} credits</p>
                 <p className="mt-3 flex items-end gap-2 text-5xl font-semibold">
