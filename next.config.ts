@@ -9,7 +9,6 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   ...(isGithubPages && basePath
     ? {
-        assetPrefix: `${basePath}/`,
         basePath,
       }
     : {}),
