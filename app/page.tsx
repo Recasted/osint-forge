@@ -227,7 +227,7 @@ export default function Home() {
                     <div
                       key={row.label}
                       className="preview-row flex items-center justify-between gap-3"
-                      style={{ animationDelay: `${index * 180 + 180}ms` }}
+                      style={{ animationDelay: `${index * 900 + 1200}ms` }}
                     >
                       <div className="flex min-w-0 items-center gap-3">
                         <span className="grid size-6 shrink-0 place-items-center border border-white/38 text-[10px] text-[#f0b35a]">
