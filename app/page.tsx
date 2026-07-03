@@ -340,7 +340,7 @@ export default function Home() {
               FAQ
             </p>
             <h2 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">
-              Click menu with placeholder answers.
+              Knowledge Base.
             </h2>
           </div>
 
