@@ -150,6 +150,29 @@ a {
   animation: search-progress 35s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 
+.status-badge {
+  position: relative;
+  display: inline-grid;
+  min-width: 82px;
+  place-items: center;
+}
+
+.status-running,
+.status-complete {
+  grid-area: 1 / 1;
+  transition: none;
+}
+
+.status-running {
+  animation: status-running 35s ease-in-out infinite;
+}
+
+.status-complete {
+  opacity: 0;
+  color: #9fffe7;
+  animation: status-complete 35s ease-in-out infinite;
+}
+
 .preview-row {
   opacity: 0;
   transform: translateY(8px);
@@ -292,11 +315,11 @@ a {
   }
 
   72%,
-  86% {
+  92% {
     width: 100%;
   }
 
-  92% {
+  94% {
     width: 100%;
     opacity: 1;
   }
@@ -308,6 +331,40 @@ a {
   }
 }
 
+@keyframes status-running {
+  0%,
+  78% {
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  82%,
+  100% {
+    opacity: 0;
+    filter: blur(3px);
+  }
+}
+
+@keyframes status-complete {
+  0%,
+  78% {
+    opacity: 0;
+    filter: blur(3px);
+  }
+
+  82%,
+  94% {
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  98%,
+  100% {
+    opacity: 0;
+    filter: blur(3px);
+  }
+}
+
 @keyframes preview-row-1 {
   0% {
     opacity: 0;
@@ -315,14 +372,14 @@ a {
     transform: translateY(14px);
   }
 
-  10%,
-  91% {
+  11%,
+  94% {
     opacity: 1;
     filter: blur(0);
     transform: translateY(0);
   }
 
-  94%,
+  98%,
   100% {
     opacity: 0;
     filter: blur(4px);
@@ -339,13 +396,13 @@ a {
   }
 
   22%,
-  89% {
+  94% {
     opacity: 1;
     filter: blur(0);
     transform: translateY(0);
   }
 
-  92%,
+  98%,
   100% {
     opacity: 0;
     filter: blur(4px);
@@ -361,14 +418,14 @@ a {
     transform: translateY(14px);
   }
 
-  34.5%,
-  87% {
+  35%,
+  94% {
     opacity: 1;
     filter: blur(0);
     transform: translateY(0);
   }
 
-  90%,
+  98%,
   100% {
     opacity: 0;
     filter: blur(4px);
@@ -384,14 +441,14 @@ a {
     transform: translateY(14px);
   }
 
-  41%,
-  85% {
+  42%,
+  94% {
     opacity: 1;
     filter: blur(0);
     transform: translateY(0);
   }
 
-  88%,
+  98%,
   100% {
     opacity: 0;
     filter: blur(4px);
@@ -407,14 +464,14 @@ a {
     transform: translateY(14px);
   }
 
-  47%,
-  83% {
+  48%,
+  94% {
     opacity: 1;
     filter: blur(0);
     transform: translateY(0);
   }
 
-  86%,
+  98%,
   100% {
     opacity: 0;
     filter: blur(4px);
@@ -430,14 +487,14 @@ a {
     transform: translateY(14px);
   }
 
-  51%,
-  81% {
+  52%,
+  94% {
     opacity: 1;
     filter: blur(0);
     transform: translateY(0);
   }
 
-  84%,
+  98%,
   100% {
     opacity: 0;
     filter: blur(4px);
@@ -447,20 +504,20 @@ a {
 
 @keyframes preview-row-7 {
   0%,
-  60% {
+  52% {
     opacity: 0;
     filter: blur(6px);
     transform: translateY(14px);
   }
 
-  63%,
-  79% {
+  55%,
+  94% {
     opacity: 1;
     filter: blur(0);
     transform: translateY(0);
   }
 
-  82%,
+  98%,
   100% {
     opacity: 0;
     filter: blur(4px);
@@ -477,13 +534,13 @@ a {
   }
 
   72%,
-  88% {
+  94% {
     opacity: 1;
     filter: blur(0);
     transform: translateY(0);
   }
 
-  93% {
+  98% {
     opacity: 0;
     filter: blur(4px);
     transform: translateY(-4px);
@@ -505,13 +562,13 @@ a {
   }
 
   74%,
-  82% {
+  94% {
     opacity: 1;
     filter: blur(0);
     transform: translateY(0);
   }
 
-  88% {
+  98% {
     opacity: 0;
     filter: blur(3px);
     transform: translateY(-3px);
@@ -533,13 +590,13 @@ a {
   }
 
   77%,
-  82% {
+  94% {
     opacity: 1;
     filter: blur(0);
     transform: translateY(0);
   }
 
-  88%,
+  98%,
   100% {
     opacity: 0;
     filter: blur(3px);
@@ -556,13 +613,13 @@ a {
   }
 
   80%,
-  82% {
+  94% {
     opacity: 1;
     filter: blur(0);
     transform: translateY(0);
   }
 
-  88%,
+  98%,
   100% {
     opacity: 0;
     filter: blur(3px);
@@ -599,6 +656,8 @@ a {
 
   .terminal-cursor,
   .search-progress,
+  .status-running,
+  .status-complete,
   .preview-row,
   .correlated-card,
   .preview-result-line {
@@ -609,5 +668,9 @@ a {
 
   .search-progress {
     width: 100%;
+  }
+
+  .status-running {
+    display: none;
   }
 }
