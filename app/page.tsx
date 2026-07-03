@@ -107,22 +107,6 @@ export default function Home() {
               <a className="transition hover:text-white" href="#community">
                 Community
               </a>
-              <a
-                className="telegram-nav-link"
-                href="https://t.me/osintforgeupdates"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Updates
-              </a>
-              <a
-                className="telegram-nav-link"
-                href="https://t.me/OsintForgeChat"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Chat
-              </a>
             </nav>
             <a
               href="#pricing"
