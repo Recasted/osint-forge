@@ -147,13 +147,13 @@ a {
 .search-progress {
   width: 0;
   box-shadow: 0 0 18px rgba(240, 179, 90, 0.55);
-  animation: search-progress 4.8s ease-in-out infinite;
+  animation: search-progress 19.8s ease-in-out infinite;
 }
 
 .preview-row {
   opacity: 0;
   transform: translateY(8px);
-  animation: preview-row 4.8s ease-in-out infinite;
+  animation: preview-row 19.8s ease-in-out infinite;
 }
 
 .correlated-card {
@@ -161,24 +161,24 @@ a {
   box-shadow:
     0 0 0 1px rgba(255, 106, 74, 0.12),
     0 0 32px rgba(255, 106, 74, 0.1);
-  animation: correlated-card 4.8s ease-in-out infinite;
+  animation: correlated-card 19.8s ease-in-out infinite;
 }
 
 .preview-result-line {
   opacity: 0;
-  animation: preview-result-line 4.8s ease-in-out infinite;
+  animation: preview-result-line 19.8s ease-in-out infinite;
 }
 
 .preview-result-line:nth-child(1) {
-  animation-delay: 1.65s;
+  animation-delay: 10.4s;
 }
 
 .preview-result-line:nth-child(2) {
-  animation-delay: 1.85s;
+  animation-delay: 11s;
 }
 
 .preview-result-line:nth-child(3) {
-  animation-delay: 2.05s;
+  animation-delay: 11.6s;
 }
 
 .tool-rail {
@@ -259,8 +259,8 @@ a {
     width: 0;
   }
 
-  42%,
-  78% {
+  72%,
+  86% {
     width: 100%;
   }
 
@@ -275,8 +275,8 @@ a {
     transform: translateY(8px);
   }
 
-  18%,
-  76% {
+  10%,
+  78% {
     opacity: 1;
     transform: translateY(0);
   }
@@ -289,13 +289,13 @@ a {
 
 @keyframes correlated-card {
   0%,
-  30% {
+  52% {
     opacity: 0;
     transform: translateY(10px);
   }
 
-  42%,
-  78% {
+  64%,
+  84% {
     opacity: 1;
     transform: translateY(0);
   }
@@ -308,12 +308,12 @@ a {
 
 @keyframes preview-result-line {
   0%,
-  35% {
+  58% {
     opacity: 0;
   }
 
-  48%,
-  78% {
+  68%,
+  84% {
     opacity: 1;
   }
 
