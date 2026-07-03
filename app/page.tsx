@@ -101,6 +101,22 @@ export default function Home() {
               <a className="transition hover:text-white" href="#community">
                 Community
               </a>
+              <a
+                className="transition hover:text-white"
+                href="https://t.me/osintforgeupdates"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Updates
+              </a>
+              <a
+                className="transition hover:text-white"
+                href="https://t.me/OsintForgeChat"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Chat
+              </a>
             </nav>
             <a
               href="#pricing"
@@ -346,8 +362,8 @@ export default function Home() {
         </div>
       </section>
 
-      <footer id="community" className="border-t border-white/10 px-5 py-8 sm:px-8 lg:px-10">
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 md:flex-row md:items-center" data-reveal>
+      <footer id="community" className="border-t border-white/10 bg-[#050607] px-5 py-8 sm:px-8 lg:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 md:flex-row md:items-center">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/42">
               Social channels
