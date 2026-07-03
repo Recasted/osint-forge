@@ -10,20 +10,36 @@ const tools = [
 
 export function ToolSidebar() {
   return (
-    <aside className="tool-rail" aria-label="OSINT Forge tools">
-      <nav className="tool-rail-inner">
+    <>
+      <aside className="tool-rail" aria-label="OSINT Forge tools">
+        <nav className="tool-rail-inner">
+          {tools.map((tool) => (
+            <Link
+              key={tool.href}
+              className="tool-rail-link"
+              href={tool.href}
+              title={tool.label}
+              aria-label={tool.label}
+            >
+              {tool.short}
+            </Link>
+          ))}
+        </nav>
+      </aside>
+
+      <nav className="mobile-tool-rail" aria-label="OSINT Forge tools">
         {tools.map((tool) => (
           <Link
             key={tool.href}
-            className="tool-rail-link"
+            className="mobile-tool-link"
             href={tool.href}
             title={tool.label}
             aria-label={tool.label}
           >
-            {tool.short}
+            <span>{tool.short}</span>
           </Link>
         ))}
       </nav>
-    </aside>
+    </>
   );
 }

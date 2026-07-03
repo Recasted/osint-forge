@@ -85,19 +85,19 @@ const socialLinks = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#050607] text-[#f3f4f0]">
+    <main className="min-h-screen bg-[#050607] pb-20 text-[#f3f4f0] xl:pb-0">
       <InteractiveEffects />
       <ToolSidebar />
       <section className="relative overflow-hidden border-b border-white/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_16%,rgba(64,92,255,0.28),transparent_28%),radial-gradient(circle_at_20%_80%,rgba(0,224,170,0.14),transparent_26%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:44px_44px]" />
-        <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col px-5 py-5 sm:px-8 lg:px-10">
-          <header className="flex items-center justify-between gap-5 border border-white/10 bg-black/30 px-4 py-3 backdrop-blur">
+        <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-4 sm:px-8 lg:px-10">
+          <header className="flex items-center justify-between gap-3 border border-white/10 bg-black/30 px-3 py-3 backdrop-blur sm:gap-5 sm:px-4">
             <a href="#" className="flex items-center gap-3" aria-label="OSINT Forge home">
               <span className="grid size-9 place-items-center bg-[#f3f4f0] text-sm font-black text-[#050607]">
                 OF
               </span>
-              <span className="text-sm font-semibold uppercase tracking-[0.18em]">
+              <span className="text-xs font-semibold uppercase tracking-[0.14em] sm:text-sm sm:tracking-[0.18em]">
                 OSINT Forge
               </span>
             </a>
@@ -120,44 +120,44 @@ export default function Home() {
             </nav>
             <a
               href="#pricing"
-              className="border border-white/20 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white transition hover:border-white hover:bg-white hover:text-black"
+              className="border border-white/20 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.1em] text-white transition hover:border-white hover:bg-white hover:text-black sm:px-4 sm:text-xs sm:tracking-[0.14em]"
             >
               Get Access
             </a>
           </header>
 
-          <div className="grid flex-1 items-start gap-12 py-12 lg:grid-cols-[1fr_470px]">
+          <div className="grid flex-1 items-start gap-8 py-8 sm:py-12 lg:grid-cols-[minmax(0,1fr)_470px] lg:gap-12">
             <div className="lg:pt-4" data-reveal>
-              <p className="mb-5 inline-flex border border-[#5f73ff]/50 bg-[#5f73ff]/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#aeb8ff]">
+              <p className="mb-4 inline-flex border border-[#5f73ff]/50 bg-[#5f73ff]/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#aeb8ff] sm:mb-5 sm:text-xs sm:tracking-[0.2em]">
                 OSINT intelligence platform
               </p>
-              <h1 className="max-w-4xl text-5xl font-semibold leading-[0.98] tracking-normal text-white sm:text-7xl lg:text-8xl">
+              <h1 className="max-w-4xl text-[clamp(2.45rem,12vw,4.6rem)] font-semibold leading-[1.02] tracking-normal text-white lg:text-8xl">
                 Investigate anyone. Map anything. Prove every link.
               </h1>
-              <p className="mt-7 max-w-2xl text-base leading-8 text-white/62 sm:text-lg">
+              <p className="mt-5 max-w-2xl text-sm leading-7 text-white/62 sm:mt-7 sm:text-lg sm:leading-8">
                 Search across open-source signals, resolve hidden relationships,
                 preserve evidence, and produce case-ready intelligence reports
                 from one focused workspace.
               </p>
 
-              <div className="mt-9 max-w-2xl border border-white/12 bg-[#080a0c] p-3 shadow-2xl shadow-black/40">
+              <div className="mt-6 max-w-2xl border border-white/12 bg-[#080a0c] p-2 shadow-2xl shadow-black/40 sm:mt-9 sm:p-3">
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <div className="flex min-h-12 flex-1 items-center border border-white/10 bg-black px-4 font-mono text-sm text-white/44">
+                  <div className="flex min-h-11 flex-1 items-center border border-white/10 bg-black px-3 font-mono text-xs text-white/44 sm:min-h-12 sm:px-4 sm:text-sm">
                     domain, handle, IP, wallet, person, company...
                   </div>
                   <a
                     href="#capabilities"
-                    className="inline-flex min-h-12 items-center justify-center bg-white px-6 text-sm font-black uppercase tracking-[0.14em] text-black transition hover:bg-[#00e0aa]"
+                    className="inline-flex min-h-11 items-center justify-center bg-white px-5 text-xs font-black uppercase tracking-[0.12em] text-black transition hover:bg-[#00e0aa] sm:min-h-12 sm:px-6 sm:text-sm sm:tracking-[0.14em]"
                   >
                     Start Search
                   </a>
                 </div>
               </div>
 
-              <div className="mt-10 grid max-w-3xl gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-3" data-reveal>
+              <div className="mt-7 grid max-w-3xl gap-px overflow-hidden border border-white/10 bg-white/10 sm:mt-10 sm:grid-cols-3" data-reveal>
                 {stats.map((stat) => (
-                  <div key={stat.label} className="glow-card bg-[#07090a] p-5">
-                    <p className="text-3xl font-semibold text-white">{stat.value}</p>
+                  <div key={stat.label} className="glow-card bg-[#07090a] p-4 sm:p-5">
+                    <p className="text-2xl font-semibold text-white sm:text-3xl">{stat.value}</p>
                     <p className="mt-2 text-xs uppercase leading-5 tracking-[0.14em] text-white/46">
                       {stat.label}
                     </p>
@@ -187,20 +187,20 @@ export default function Home() {
               </div>
             </div>
 
-            <aside className="glow-card search-preview border border-white/12 bg-[#07090a]/92 p-4 shadow-2xl shadow-black/50 backdrop-blur lg:mt-28" data-reveal>
+            <aside className="glow-card search-preview border border-white/12 bg-[#07090a]/92 p-3 shadow-2xl shadow-black/50 backdrop-blur sm:p-4 lg:mt-28" data-reveal>
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#00e0aa]">
                     Live Preview
                   </p>
-                  <h2 className="mt-2 text-xl font-semibold">OSINT Forge search</h2>
+                  <h2 className="mt-2 text-lg font-semibold sm:text-xl">OSINT Forge search</h2>
                 </div>
                 <span className="border border-[#00e0aa]/40 px-3 py-1 text-xs font-bold text-[#00e0aa]">
                   548ms
                 </span>
               </div>
 
-              <div className="mt-5 border border-white/10 bg-black p-4 font-mono">
+              <div className="mt-4 border border-white/10 bg-black p-3 font-mono sm:mt-5 sm:p-4">
                 <div className="flex items-center gap-2 text-xs text-white/42">
                   <span className="size-2 bg-[#f0b35a]" />
                   <span className="size-2 bg-white/18" />
