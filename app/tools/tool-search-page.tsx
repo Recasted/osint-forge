@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 
 import { InteractiveEffects } from "../interactive-effects";
+import { AccountState, consumeSearch, getAccount, getRemainingSearches } from "../lib/account-store";
 import { runToolSearch, SearchKind, SearchResponse } from "../lib/api-client";
 import { ToolSidebar } from "../tool-sidebar";
 
@@ -28,6 +29,7 @@ export function ToolSearchPage({
   const [result, setResult] = useState<SearchResponse | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [account, setAccount] = useState<AccountState | null>(() => getAccount());
 
   const statusText = useMemo(() => {
     if (isLoading) return "Running";
@@ -39,6 +41,14 @@ export function ToolSearchPage({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+
+    const quota = consumeSearch();
+    if (!quota.ok) {
+      setError(quota.reason);
+      return;
+    }
+
+    if (quota.account) setAccount(quota.account);
     setIsLoading(true);
 
     try {
@@ -66,12 +76,20 @@ export function ToolSearchPage({
               OSINT Forge
             </span>
           </Link>
-          <Link
-            href="/tools/export/"
-            className="border border-white/20 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.1em] text-white transition hover:border-white hover:bg-white hover:text-black sm:px-4 sm:text-xs sm:tracking-[0.14em]"
-          >
-            Export
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/account/"
+              className="border border-white/20 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.1em] text-white transition hover:border-white hover:bg-white hover:text-black sm:px-4 sm:text-xs sm:tracking-[0.14em]"
+            >
+              Account
+            </Link>
+            <Link
+              href="/tools/export/"
+              className="border border-white/20 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.1em] text-white transition hover:border-white hover:bg-white hover:text-black sm:px-4 sm:text-xs sm:tracking-[0.14em]"
+            >
+              Export
+            </Link>
+          </div>
         </header>
 
         <section className="py-12 sm:py-20" data-reveal>
@@ -85,7 +103,26 @@ export function ToolSearchPage({
             {description}
           </p>
 
-          <form className="glow-card mt-8 border border-white/12 bg-[#080a0c] p-3 sm:mt-10 sm:p-4" onSubmit={handleSubmit}>
+          <div className="mt-8 grid gap-3 sm:grid-cols-2" data-reveal>
+            <Link href="/account/" className="glow-card border border-white/12 bg-[#080a0c] p-4 transition hover:border-[#00e0aa]/60">
+              <p className="font-mono text-[11px] font-black uppercase tracking-[0.16em] text-[#00e0aa]">
+                Account status
+              </p>
+              <p className="mt-3 text-sm leading-6 text-white/62">
+                {account ? `${getRemainingSearches(account)} searches remaining this month` : "Create a free account to unlock 5 monthly searches."}
+              </p>
+            </Link>
+            <Link href="/cart/" className="glow-card border border-[#f0b35a]/40 bg-[#1a1711] p-4 transition hover:border-[#f0b35a]">
+              <p className="font-mono text-[11px] font-black uppercase tracking-[0.16em] text-[#f0b35a]">
+                Upgrade
+              </p>
+              <p className="mt-3 text-sm leading-6 text-white/62">
+                Need more searches? Add a plan or extra credits from the cart.
+              </p>
+            </Link>
+          </div>
+
+          <form className="glow-card mt-5 border border-white/12 bg-[#080a0c] p-3 sm:p-4" onSubmit={handleSubmit}>
             <div className="flex items-center justify-between gap-4">
               <label className="text-xs font-bold uppercase tracking-[0.18em] text-white/42" htmlFor={`${tool}-search`}>
                 Search input
