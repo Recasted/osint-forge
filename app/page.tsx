@@ -42,6 +42,32 @@ const capabilities = [
   },
 ];
 
+const modules = [
+  {
+    short: "PE",
+    title: "People Search",
+    copy: "Start with a name, alias, email, phone number, or loose fragment and build a person-focused lead set from public signals.",
+    tags: ["Aliases", "Emails", "Phones"],
+  },
+  {
+    short: "DM",
+    title: "Domain Search",
+    copy: "Pivot through domains, IPs, registrants, DNS clues, nameservers, and related infrastructure without losing the source trail.",
+    tags: ["DNS", "IPs", "ASN"],
+  },
+  {
+    short: "HD",
+    title: "Handle Search",
+    copy: "Trace usernames and profile URLs across social platforms, forums, repositories, archives, and reused account patterns.",
+    tags: ["Profiles", "Reuse", "Archives"],
+  },
+  {
+    short: "EX",
+    title: "Report Export",
+    copy: "Turn reviewed findings into a structured brief with source links, analyst notes, preserved context, and case-ready output.",
+    tags: ["Briefs", "Sources", "Notes"],
+  },
+];
 const workflow = [
   "Enter a person, company, domain, handle, IP, wallet, or loose clue.",
   "OSINT Forge enriches, clusters, scores, and flags the highest-value connections.",
@@ -302,6 +328,68 @@ export default function Home() {
         </div>
       </section>
 
+      <section id="modules" className="border-b border-white/10 bg-[#050607] px-3 py-14 sm:px-8 sm:py-20 lg:px-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-4xl" data-reveal>
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#00e0aa] sm:text-xs sm:tracking-[0.2em]">
+              Module tools
+            </p>
+            <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-5xl">
+              Every tool has a job. Pick the signal and move faster.
+            </h2>
+            <p className="mt-5 max-w-2xl text-sm leading-7 text-white/54 sm:text-base sm:leading-8">
+              OSINT Forge keeps each investigation path focused: people, domains, handles, and exports each get their own workspace so results stay clean, explainable, and easy to hand off.
+            </p>
+          </div>
+
+          <aside className="mt-10 border border-[#f0b35a]/70 bg-[#1a1711] p-5 shadow-2xl shadow-black/30 sm:p-7" data-reveal>
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="font-mono text-[11px] font-black uppercase tracking-[0.18em] text-[#f0b35a]">
+                  Why it is better
+                </p>
+                <h3 className="mt-3 text-2xl font-semibold text-white sm:text-3xl">
+                  One search surface, separate specialist workflows.
+                </h3>
+              </div>
+              <p className="max-w-2xl text-sm leading-7 text-white/62">
+                Instead of throwing every source into one noisy result dump, each module explains what it is checking, what kind of evidence it returns, and how many credits it uses. That makes pivots quicker and reports easier to trust.
+              </p>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {["Focused results", "Clear credit use", "Source-first evidence", "Export-ready notes"].map((item) => (
+                <span key={item} className="border border-[#f0b35a]/30 bg-black/28 px-3 py-2 font-mono text-[11px] text-white/58">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </aside>
+
+          <div className="mt-8 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-2" data-reveal>
+            {modules.map((module) => (
+              <article key={module.title} className="glow-card bg-[#080a0c] p-5 sm:p-7">
+                <div className="mb-6 flex items-center justify-between gap-4">
+                  <span className="grid size-12 place-items-center border border-[#f0b35a]/55 bg-[#f0b35a]/10 font-mono text-sm font-black text-[#f0b35a]">
+                    {module.short}
+                  </span>
+                  <span className="border border-white/12 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-white/42">
+                    Uses 1 search
+                  </span>
+                </div>
+                <h3 className="text-xl font-semibold text-white">{module.title}</h3>
+                <p className="mt-4 text-sm leading-7 text-white/54">{module.copy}</p>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {module.tags.map((tag) => (
+                    <span key={tag} className="border border-white/10 bg-black/24 px-3 py-1.5 font-mono text-[11px] text-white/42">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
       <section id="workflow" className="border-b border-white/10 bg-[#080a0c] px-3 py-14 sm:px-8 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#00e0aa] sm:text-xs sm:tracking-[0.2em]" data-reveal>
