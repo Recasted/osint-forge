@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { InteractiveEffects } from "../interactive-effects";
 import { AccountRequired } from "./account-required";
-import { AccountState, getAccount, getRemainingSearches, planLabel } from "../lib/account-store";
+import { AccountState, getAccount, getRemainingSearches, PlanId, planLabel } from "../lib/account-store";
 import { ToolSidebar } from "../tool-sidebar";
 
 type ModulePageProps = {
@@ -14,12 +14,16 @@ type ModulePageProps = {
   description: string;
   examples: string[];
   locked?: boolean;
+  requiredPlan?: Exclude<PlanId, "free">;
 };
 
-export function ModulePage({ eyebrow, title, description, examples, locked = true }: ModulePageProps) {
+const planRank: Record<PlanId, number> = { free: 0, core: 1, professional: 2, enterprise: 3 };
+
+export function ModulePage({ eyebrow, title, description, examples, locked = true, requiredPlan = "core" }: ModulePageProps) {
   const [account, setAccount] = useState<AccountState | null>(() => getAccount());
   const requiresPaidPlan = locked;
-  const hasModuleAccess = Boolean(account && (!requiresPaidPlan || account.plan !== "free"));
+  const hasModuleAccess = Boolean(account && (!requiresPaidPlan || planRank[account.plan] >= planRank[requiredPlan]));
+  const requiredPlanLabel = planLabel(requiredPlan);
 
   return (
     <main className="min-h-screen bg-[#050607] px-4 py-4 pb-24 text-[#f3f4f0] sm:px-8 lg:px-10 xl:pb-5">
@@ -110,16 +114,16 @@ export function ModulePage({ eyebrow, title, description, examples, locked = tru
             <>
               <aside className="mt-8 border border-[#f0b35a]/50 bg-[#1a1711] p-5 sm:p-6">
                 <p className="font-mono text-[11px] font-black uppercase tracking-[0.18em] text-[#f0b35a]">
-                  Paid plan required
+                  {requiredPlanLabel}+ required
                 </p>
                 <h2 className="mt-3 text-2xl font-semibold text-white">
                   Upgrade to unlock this module.
                 </h2>
                 <p className="mt-4 max-w-2xl text-sm leading-7 text-white/62">
-                  Your Free account is active, but this workspace is reserved for paid plans. Core, Professional, and Enterprise accounts can open it directly.
+                  Your current plan is active, but this workspace requires {requiredPlanLabel} or higher. Upgrade to open it directly.
                 </p>
                 <p className="mt-4 font-mono text-xs text-white/42">
-                  {getRemainingSearches(account)} free searches remaining this month.
+                  {getRemainingSearches(account)} searches remaining this month.
                 </p>
               </aside>
 

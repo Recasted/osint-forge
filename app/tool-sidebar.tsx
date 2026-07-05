@@ -4,11 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
 
+type RequiredPlan = "core" | "professional" | "enterprise";
+
 type ToolItem = {
   label: string;
   icon: string;
   href: string;
   locked?: boolean;
+  requiredPlan?: RequiredPlan;
 };
 
 type ToolGroup = {
@@ -39,6 +42,8 @@ function subscribeToAccount(callback: () => void) {
   };
 }
 
+const planRank: Record<string, number> = { free: 0, core: 1, professional: 2, enterprise: 3 };
+
 const toolGroups: ToolGroup[] = [
   {
     title: "OSINT Tools",
@@ -66,11 +71,11 @@ const toolGroups: ToolGroup[] = [
   },
   {
     title: "Breach Data",
-    info: "Provider-backed exposure modules for breach intelligence, stealer log context, machine views, and broad source searches.",
+    info: "Professional+ exposure modules for breach intelligence, stealer log context, machine views, and broad source searches.",
     items: [
-      { label: "Machine Viewer", icon: "MV", href: "/tools/machine-viewer/", locked: true },
-      { label: "Stealerlogs", icon: "SL", href: "/tools/stealerlogs/", locked: true },
-      { label: "Universal Search", icon: "US", href: "/tools/universal-search/" },
+      { label: "Machine Viewer", icon: "MV", href: "/tools/machine-viewer/", locked: true, requiredPlan: "professional" },
+      { label: "Stealerlogs", icon: "SL", href: "/tools/stealerlogs/", locked: true, requiredPlan: "professional" },
+      { label: "Universal Search", icon: "US", href: "/tools/universal-search/", locked: true, requiredPlan: "professional" },
     ],
   },
   {
@@ -108,7 +113,6 @@ const mobileTools = [
 export function ToolSidebar() {
   const pathname = usePathname();
   const plan = useSyncExternalStore(subscribeToAccount, getPlanSnapshot, () => "free");
-  const hasPaidPlan = plan !== "free";
 
   return (
     <>
@@ -132,19 +136,21 @@ export function ToolSidebar() {
                 <div className="tool-menu-items">
                   {group.items.map((tool) => {
                     const isActive = pathname === tool.href || (tool.href !== "/" && pathname?.startsWith(tool.href));
-                    const showLock = Boolean(tool.locked && !hasPaidPlan);
+                    const requiredPlan = tool.requiredPlan || "core";
+                    const showLock = Boolean(tool.locked && planRank[plan] < planRank[requiredPlan]);
+                    const lockLabel = requiredPlan === "professional" ? "PRO+" : "LOCK";
 
                     return (
                       <Link
                         key={`${group.title}-${tool.label}`}
                         className={`tool-rail-link${isActive ? " is-active" : ""}`}
                         href={tool.href}
-                        title={showLock ? `${tool.label} requires a paid plan` : tool.label}
+                        title={showLock ? `${tool.label} requires ${requiredPlan} or higher` : tool.label}
                         aria-label={tool.label}
                       >
                         <span className="tool-rail-icon" aria-hidden="true">{tool.icon}</span>
                         <span className="tool-rail-label">{tool.label}</span>
-                        {showLock ? <span className="tool-rail-lock" aria-hidden="true">LOCK</span> : null}
+                        {showLock ? <span className="tool-rail-lock" aria-hidden="true">{lockLabel}</span> : null}
                       </Link>
                     );
                   })}
