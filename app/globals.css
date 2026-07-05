@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 :root {
   --background: #050607;
@@ -128,6 +128,19 @@ a {
   transform: translateY(-2px);
 }
 
+.account-rank-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  white-space: nowrap;
+}
+
+.account-rank-link > span:first-child {
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .subscription-rank {
   position: relative;
   display: inline-block;
@@ -210,6 +223,11 @@ a {
   --spark-x: -10px;
   --spark-y: 11px;
   animation-delay: 900ms;
+}
+
+.tier-free {
+  --tier-color: #c7c7bd;
+  --tier-spark: #ffffff;
 }
 
 .tier-core {
@@ -1123,3 +1141,262 @@ a {
     display: none;
   }
 }
+
+
+.site-footer {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #f7f7f0;
+}
+
+.footer-brand span {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid rgba(140, 109, 255, 0.45);
+  background: rgba(140, 109, 255, 0.18);
+  color: #c7b8ff;
+  font-family: var(--font-geist-mono), "Courier New", monospace;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.footer-brand strong {
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.social-icon {
+  display: grid;
+  width: 1.85rem;
+  height: 1.85rem;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.72);
+  font-family: var(--font-geist-mono), "Courier New", monospace;
+  font-size: 0.64rem;
+  font-weight: 900;
+  transition: border-color 180ms ease, color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.social-icon:hover {
+  border-color: rgba(0, 224, 170, 0.7);
+  background: rgba(0, 224, 170, 0.1);
+  color: #00e0aa;
+  transform: translateY(-2px);
+}
+
+.footer-contact-link {
+  margin-top: 2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #b891ff;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.footer-nav-link {
+  width: fit-content;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.9rem;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.footer-nav-link:hover {
+  color: #ffffff;
+  transform: translateX(3px);
+}
+
+.payment-chip {
+  display: inline-flex;
+  min-width: 2.25rem;
+  min-height: 1.35rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.2rem 0.45rem;
+  color: rgba(255, 255, 255, 0.68);
+  font-family: var(--font-geist-mono), "Courier New", monospace;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.footer-trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.trust-score {
+  display: flex;
+  min-width: 16.5rem;
+  align-items: center;
+  gap: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.75rem 1rem;
+}
+
+.trust-score span {
+  display: grid;
+  width: 2.45rem;
+  height: 2.45rem;
+  place-items: center;
+  border: 0.28rem solid #ff553d;
+  border-left-color: #00e0aa;
+  color: #ffffff;
+  font-family: var(--font-geist-mono), "Courier New", monospace;
+  font-weight: 900;
+}
+
+.trust-score strong,
+.dmca-box {
+  font-family: var(--font-geist-mono), "Courier New", monospace;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.trust-score p {
+  margin-top: 0.1rem;
+  font-family: var(--font-geist-mono), "Courier New", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dmca-box {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.55rem 0.7rem;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.05;
+  text-align: center;
+}
+
+.legal-card p + p {
+  margin-top: 1rem;
+}
+
+.legal-inline-link {
+  color: #00e0aa;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 224, 170, 0.35);
+  text-underline-offset: 0.25rem;
+}
+
+.sitemap-card {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.sitemap-card header {
+  display: grid;
+  min-height: 4rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.1rem 1.25rem;
+}
+
+.sitemap-card header span {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  background: rgba(0, 224, 170, 0.12);
+  color: #00e0aa;
+  font-family: var(--font-geist-mono), "Courier New", monospace;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.sitemap-card header h2 {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.sitemap-card header small {
+  display: grid;
+  min-width: 1.55rem;
+  height: 1.55rem;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.48);
+  font-family: var(--font-geist-mono), "Courier New", monospace;
+  font-size: 0.72rem;
+}
+
+.sitemap-list,
+.sitemap-module-grid {
+  display: grid;
+  background: rgba(255, 255, 255, 0.07);
+  gap: 1px;
+}
+
+.sitemap-list a,
+.sitemap-module-grid a {
+  display: block;
+  min-height: 5.1rem;
+  background: #111312;
+  padding: 1rem 1.25rem;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.sitemap-list a:hover,
+.sitemap-module-grid a:hover {
+  background: rgba(0, 224, 170, 0.08);
+}
+
+.sitemap-list strong,
+.sitemap-module-grid strong {
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.sitemap-list p,
+.sitemap-module-grid p {
+  margin-top: 0.25rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.sitemap-module-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 64rem) {
+  .sitemap-module-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 42rem) {
+  .trust-score {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .sitemap-module-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

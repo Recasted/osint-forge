@@ -1,3 +1,6 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Report Export | OSINT Forge" };
 import Link from "next/link";
 
 import { InteractiveEffects } from "../../interactive-effects";
@@ -33,3 +36,4 @@ export default function ExportPage() {
     </main>
   );
 }
+

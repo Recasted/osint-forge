@@ -19,46 +19,59 @@ const toolGroups: ToolGroup[] = [
   {
     title: "OSINT Tools",
     items: [
-      { label: "People OSINT", icon: "@", href: "/tools/people/" },
-      { label: "Network", icon: "#", href: "/tools/domains/" },
-      { label: "Handle Search", icon: "HD", href: "/tools/handles/" },
-      { label: "Report Export", icon: "EX", href: "/tools/export/" },
+      { label: "Email OSINT", icon: "EM", href: "/tools/email/" },
+      { label: "Network", icon: "NW", href: "/tools/network/" },
+      { label: "VIN Lookup", icon: "VN", href: "/tools/vin/", locked: true },
+      { label: "GTA / FiveM", icon: "GT", href: "/tools/gta-fivem/", locked: true },
+      { label: "TikTok Resolver", icon: "TT", href: "/tools/tiktok-resolver/", locked: true },
+      { label: "Instagram Resolver", icon: "IG", href: "/tools/instagram-resolver/", locked: true },
+      { label: "TikTok OSINT", icon: "TK", href: "/tools/tiktok-osint/", locked: true },
+      { label: "Reverse Lookup", icon: "RL", href: "/tools/reverse-lookup/", locked: true },
     ],
   },
   {
     title: "Gaming & Social",
     items: [
-      { label: "Discord OSINT", icon: "DC", href: "/account/", locked: true },
-      { label: "Discord History", icon: "DH", href: "/account/", locked: true },
-      { label: "Roblox to Discord", icon: "RB", href: "/account/", locked: true },
-      { label: "Minecraft Lookup", icon: "MC", href: "/account/", locked: true },
+      { label: "Discord OSINT", icon: "DC", href: "/tools/discord/", locked: true },
+      { label: "Discord History", icon: "DH", href: "/tools/discord-history/", locked: true },
+      { label: "Roblox to Discord", icon: "RB", href: "/tools/roblox-discord/", locked: true },
+      { label: "Minecraft Lookup", icon: "MC", href: "/tools/minecraft/", locked: true },
     ],
   },
   {
     title: "Breach Data",
     items: [
-      { label: "Machine Viewer", icon: "MV", href: "/account/", locked: true },
-      { label: "Stealerlogs", icon: "SL", href: "/account/", locked: true },
-      { label: "Universal Search", icon: "US", href: "/tools/people/" },
+      { label: "Machine Viewer", icon: "MV", href: "/tools/machine-viewer/", locked: true },
+      { label: "Stealerlogs", icon: "SL", href: "/tools/stealerlogs/", locked: true },
+      { label: "Universal Search", icon: "US", href: "/tools/universal-search/" },
     ],
   },
   {
     title: "Risk & Identity",
     items: [
-      { label: "Email Intelligence", icon: "EM", href: "/tools/people/" },
-      { label: "IP Intelligence", icon: "IP", href: "/tools/domains/", locked: true },
-      { label: "AML Screening", icon: "AM", href: "/account/", locked: true },
-      { label: "Phone Intelligence", icon: "PH", href: "/tools/people/", locked: true },
-      { label: "BIN Lookup", icon: "BI", href: "/account/", locked: true },
+      { label: "Email Intelligence", icon: "EI", href: "/tools/email-intelligence/" },
+      { label: "IP Intelligence", icon: "IP", href: "/tools/ip-intelligence/", locked: true },
+      { label: "AML Screening", icon: "AM", href: "/tools/aml-screening/", locked: true },
+      { label: "AML Entity Screening", icon: "AE", href: "/tools/aml-entity-screening/", locked: true },
+      { label: "Phone Intelligence", icon: "PH", href: "/tools/phone-intelligence/", locked: true },
+      { label: "BIN Lookup", icon: "BI", href: "/tools/bin-lookup/", locked: true },
+    ],
+  },
+  {
+    title: "Core Workspace",
+    items: [
+      { label: "People OSINT", icon: "PE", href: "/tools/people/" },
+      { label: "Handle Search", icon: "HD", href: "/tools/handles/" },
+      { label: "Report Export", icon: "EX", href: "/tools/export/" },
     ],
   },
 ];
 
 const mobileTools = [
   { label: "Home", short: "HM", href: "/" },
-  { label: "People", short: "PE", href: "/tools/people/" },
-  { label: "Domain", short: "DM", href: "/tools/domains/" },
-  { label: "Handles", short: "HD", href: "/tools/handles/" },
+  { label: "Email", short: "EM", href: "/tools/email/" },
+  { label: "Network", short: "NW", href: "/tools/network/" },
+  { label: "Universal", short: "US", href: "/tools/universal-search/" },
   { label: "Account", short: "AC", href: "/account/" },
   { label: "Cart", short: "CT", href: "/cart/" },
 ];
@@ -91,7 +104,7 @@ export function ToolSidebar() {
                         key={`${group.title}-${tool.label}`}
                         className={`tool-rail-link${isActive ? " is-active" : ""}`}
                         href={tool.href}
-                        title={tool.locked ? `${tool.label} requires an account or plan` : tool.label}
+                        title={tool.locked ? `${tool.label} requires a paid plan when billing is connected` : tool.label}
                         aria-label={tool.label}
                       >
                         <span className="tool-rail-icon" aria-hidden="true">{tool.icon}</span>

@@ -2,6 +2,7 @@ export type PlanId = "free" | "core" | "professional" | "enterprise";
 export type CartItemId = PlanId | "extra-50" | "extra-200" | "extra-1000";
 
 export type AccountState = {
+  username: string;
   email: string;
   plan: PlanId;
   searchesUsed: number;
@@ -39,7 +40,27 @@ export function currentMonth() {
   return new Date().toISOString().slice(0, 7);
 }
 
-function normalizeAccount(account: AccountState) {
+function usernameFromEmail(email: string) {
+  return email.split("@")[0]?.replace(/[^a-z0-9_-]/gi, "").slice(0, 18) || "operator";
+}
+
+export function planLabel(plan: PlanId) {
+  if (plan === "free") return "Free";
+  if (plan === "core") return "Core";
+  if (plan === "professional") return "Professional";
+  return "Enterprise";
+}
+
+export function planTierClass(plan: PlanId) {
+  return `tier-${plan}`;
+}
+
+function normalizeAccount(rawAccount: AccountState) {
+  const account = {
+    ...rawAccount,
+    username: rawAccount.username || usernameFromEmail(rawAccount.email),
+  };
+
   if (account.month === currentMonth()) return account;
 
   const limit = account.plan === "free" ? 5 : account.credits;
@@ -73,8 +94,9 @@ export function saveAccount(account: AccountState) {
   return account;
 }
 
-export function createFreeAccount(email: string) {
+export function createFreeAccount(email: string, username?: string) {
   return saveAccount({
+    username: (username || usernameFromEmail(email)).trim().slice(0, 18),
     email,
     plan: "free",
     searchesUsed: 0,
@@ -139,13 +161,15 @@ export function clearCart() {
   return saveCart([]);
 }
 
-export function activateCart(email: string) {
+export function activateCart(email: string, username?: string) {
   const items = getCart();
+  const existingAccount = getAccount();
   const subscription = items.find((item) => item.kind === "subscription") || catalog.free;
   const addOnCredits = items.filter((item) => item.kind === "credits").reduce((total, item) => total + item.credits, 0);
   const credits = subscription.credits + addOnCredits;
 
   const account = saveAccount({
+    username: (username || existingAccount?.username || usernameFromEmail(email)).trim().slice(0, 18),
     email,
     plan: subscription.id as PlanId,
     searchesUsed: 0,

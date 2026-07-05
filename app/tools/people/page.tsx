@@ -1,3 +1,6 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "People OSINT | OSINT Forge" };
 import { ToolSearchPage } from "../tool-search-page";
 
 export default function PeopleSearchPage() {

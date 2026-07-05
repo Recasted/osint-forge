@@ -1,4 +1,6 @@
+﻿import { AccountAccessButton } from "./account-access-button";
 import { InteractiveEffects } from "./interactive-effects";
+import { SiteFooter } from "./site-footer";
 import { ToolSidebar } from "./tool-sidebar";
 
 const stats = [
@@ -116,10 +118,6 @@ const faqs = [
   },
 ];
 
-const socialLinks = [
-  { label: "Telegram Updates", href: "https://t.me/osintforgeupdates" },
-  { label: "Community Channel", href: "https://t.me/OsintForgeChat" },
-];
 
 export default function Home() {
   return (
@@ -156,12 +154,7 @@ export default function Home() {
                 Community
               </a>
             </nav>
-            <a
-              href="#pricing"
-              className="border border-white/20 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.1em] text-white transition hover:border-white hover:bg-white hover:text-black sm:px-4 sm:text-xs sm:tracking-[0.14em]"
-            >
-              Get Access
-            </a>
+            <AccountAccessButton />
           </header>
 
           <div className="grid min-w-0 flex-1 items-start gap-7 py-7 sm:gap-8 sm:py-12 lg:grid-cols-[minmax(0,1fr)_470px] lg:gap-12">
@@ -560,32 +553,11 @@ export default function Home() {
         </div>
       </section>
 
-      <footer id="community" className="relative z-30 border-t border-white/10 bg-[#050607] px-5 py-8 sm:px-8 lg:px-10">
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 md:flex-row md:items-center">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/42">
-              Social channels
-            </p>
-            <p className="mt-2 text-sm text-white/54">
-              Follow updates or join the community channel.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row">
-            {socialLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                target="_blank"
-                rel="noreferrer"
-                className="telegram-footer-link"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }
+
+
+
+

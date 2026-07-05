@@ -20,7 +20,9 @@ export default function CartPage() {
 
     return getCart();
   });
-  const [email, setEmail] = useState(() => getAccount()?.email ?? "");
+  const currentAccount = getAccount();
+  const [username, setUsername] = useState(() => currentAccount?.username ?? "");
+  const [email, setEmail] = useState(() => currentAccount?.email ?? "");
   const [message, setMessage] = useState("");
 
   const total = useMemo(() => items.reduce((sum, item) => sum + item.price, 0), [items]);
@@ -36,8 +38,8 @@ export default function CartPage() {
 
   function handleCheckout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!email.trim()) return;
-    activateCart(email.trim());
+    if (!email.trim() || !username.trim()) return;
+    activateCart(email.trim(), username.trim());
     setItems([]);
     setMessage("Checkout prototype complete. Your local account plan is active in this browser.");
   }
@@ -64,7 +66,7 @@ export default function CartPage() {
             Subscribe or add investigation credits.
           </h1>
           <p className="mt-5 max-w-2xl text-sm leading-7 text-white/62 sm:mt-6 sm:text-base sm:leading-8">
-            Pick a plan, review the order, and connect payment processing when you are ready to accept real purchases.
+            Pick a plan, review the order, and connect Stripe or crypto payments through the Worker when you are ready to accept real purchases.
           </p>
 
           <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
@@ -118,17 +120,25 @@ export default function CartPage() {
                 <strong className="text-3xl">${total.toFixed(2)}</strong>
               </div>
 
-              <label className="mt-6 block text-xs font-bold uppercase tracking-[0.18em] text-white/42" htmlFor="checkout-email">Account email</label>
-              <input id="checkout-email" className="mt-3 min-h-11 w-full border border-white/10 bg-black px-3 font-mono text-xs text-white outline-none transition focus:border-[#00e0aa] sm:min-h-12 sm:px-4 sm:text-sm" onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" type="email" value={email} />
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-[0.18em] text-white/42" htmlFor="checkout-username">Username</label>
+                  <input id="checkout-username" className="mt-3 min-h-11 w-full border border-white/10 bg-black px-3 font-mono text-xs text-white outline-none transition focus:border-[#00e0aa] sm:min-h-12 sm:px-4 sm:text-sm" maxLength={18} onChange={(event) => setUsername(event.target.value)} placeholder="nightcrawler_99" type="text" value={username} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-[0.18em] text-white/42" htmlFor="checkout-email">Account email</label>
+                  <input id="checkout-email" className="mt-3 min-h-11 w-full border border-white/10 bg-black px-3 font-mono text-xs text-white outline-none transition focus:border-[#00e0aa] sm:min-h-12 sm:px-4 sm:text-sm" onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" type="email" value={email} />
+                </div>
+              </div>
 
-              <button className="mt-5 inline-flex w-full items-center justify-center border border-[#00e0aa]/40 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#00e0aa] transition hover:bg-[#00e0aa] hover:text-black disabled:cursor-not-allowed disabled:opacity-50" disabled={!items.length} type="submit">
+              <button className="mt-5 inline-flex w-full items-center justify-center border border-[#00e0aa]/40 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#00e0aa] transition hover:bg-[#00e0aa] hover:text-black disabled:cursor-not-allowed disabled:opacity-50" disabled={!items.length || !email.trim() || !username.trim()} type="submit">
                 Prototype checkout
               </button>
               <button className="mt-3 inline-flex w-full items-center justify-center border border-white/16 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/62 transition hover:border-white hover:text-white" onClick={() => { clearCart(); setItems([]); }} type="button">
                 Clear cart
               </button>
               {message ? <p className="mt-4 border border-[#00e0aa]/30 bg-[#00e0aa]/10 px-3 py-2 text-sm leading-6 text-[#9fffe7]">{message}</p> : null}
-              <p className="mt-4 text-xs leading-6 text-white/38">Payment collection is not connected yet. Use this page as the checkout shell until Stripe, Lemon Squeezy, or another processor is wired through the Worker.</p>
+              <p className="mt-4 text-xs leading-6 text-white/38">Payment collection is not connected yet. This shell is ready for Stripe Checkout and your separate crypto pay service through Cloudflare.</p>
             </form>
           </div>
         </section>
