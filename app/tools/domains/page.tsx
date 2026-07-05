@@ -8,6 +8,7 @@ export default function DomainSearchPage() {
       description="Search domains, IPs, registrants, DNS clues, and related infrastructure from one terminal-style surface."
       placeholder="domain, IP, ASN, nameserver..."
       examples={["DNS pivoting", "Registrant overlap", "Infrastructure graph"]}
+      tool="domains"
     />
   );
 }

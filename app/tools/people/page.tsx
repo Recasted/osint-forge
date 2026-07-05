@@ -8,6 +8,7 @@ export default function PeopleSearchPage() {
       description="Type a name, alias, email, phone, or fragment to start a people-focused investigation workflow."
       placeholder="name, alias, email, phone..."
       examples={["Alias clustering", "Email exposure", "Public record hints"]}
+      tool="people"
     />
   );
 }
