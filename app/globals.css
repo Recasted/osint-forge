@@ -1400,3 +1400,54 @@ a {
   }
 }
 
+
+.tool-rail-inner {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tool-rail-inner::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.theme-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.theme-toggle button {
+  min-height: 2.75rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: var(--font-geist-mono), "Courier New", monospace;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.theme-toggle button:hover,
+.theme-toggle button.is-active {
+  background: #00e0aa;
+  color: #050607;
+}
+
+html[data-theme="light"] body {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+html[data-theme="light"] img,
+html[data-theme="light"] video,
+html[data-theme="light"] canvas,
+html[data-theme="light"] iframe {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+html[data-theme="light"] .cursor-glow,
+html[data-theme="light"] .cursor-spark {
+  display: none;
+}

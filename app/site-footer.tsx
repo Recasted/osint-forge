@@ -40,14 +40,10 @@ const footerColumns = [
 ];
 
 const socialLinks = [
-  { label: "X", href: "https://x.com/" },
   { label: "TG", href: "https://t.me/osintforgeupdates" },
-  { label: "DC", href: "https://discord.com/" },
-  { label: "WA", href: "https://www.whatsapp.com/" },
   { label: "GH", href: "https://github.com/Recasted/osint-forge" },
   { label: "IG", href: "https://www.instagram.com/" },
   { label: "IN", href: "https://www.linkedin.com/" },
-  { label: "TT", href: "https://www.tiktok.com/" },
 ];
 
 const payments = ["VISA", "MC", "AMEX", "DISC", "JCB", "PP", "BTC", "USDT", "+ crypto"];
@@ -98,33 +94,15 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-12 border-t border-white/10 pt-8">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="text-sm text-white/54">© 2026 OSINT Forge. All rights reserved.</p>
-              <p className="mt-6 text-xs uppercase tracking-[0.16em] text-white/38">We accept</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {payments.map((payment) => (
-                  <span key={payment} className="payment-chip">{payment}</span>
-                ))}
-              </div>
-            </div>
-
-            <div className="footer-trust-row">
-              <div className="trust-score">
-                <span>86</span>
-                <div>
-                  <strong>osintforge.dev</strong>
-                  <p>Certified website score</p>
-                </div>
-              </div>
-              <div className="dmca-box">
-                Protected<br />Content
-              </div>
-            </div>
+          <p className="text-sm text-white/54">© 2026 OSINT Forge. All rights reserved.</p>
+          <p className="mt-6 text-xs uppercase tracking-[0.16em] text-white/38">We accept</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {payments.map((payment) => (
+              <span key={payment} className="payment-chip">{payment}</span>
+            ))}
           </div>
         </div>
       </div>
     </footer>
   );
 }
-

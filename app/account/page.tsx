@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 import { InteractiveEffects } from "../interactive-effects";
 import { AccountState, createFreeAccount, getAccount, getRemainingSearches, planLabel, planTierClass, signOut } from "../lib/account-store";
+import { ThemeControl } from "../theme-control";
 import { ToolSidebar } from "../tool-sidebar";
 
 const dashboardModules = [
@@ -101,7 +102,8 @@ export default function AccountPage() {
               </div>
 
               <section className="lg:col-span-2">
-                <div className="flex items-center justify-between gap-4">
+                <ThemeControl />
+                <div className="mt-5 flex items-center justify-between gap-4">
                   <h2 className="text-2xl font-semibold text-white">Modules</h2>
                   <button className="border border-white/16 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/62 transition hover:border-white hover:text-white" onClick={handleSignOut} type="button">
                     Sign out
@@ -140,3 +142,4 @@ export default function AccountPage() {
     </main>
   );
 }
+
