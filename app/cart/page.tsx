@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
@@ -74,7 +74,7 @@ export default function CartPage() {
               <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3">
                 {(["core", "professional", "enterprise"] as CartItemId[]).map((id) => (
                   <article key={id} className="glow-card bg-[#080a0c] p-5">
-                    <h2 className="text-2xl font-semibold">{catalog[id].name}</h2>
+                    <h2 className="flex flex-wrap items-center gap-2 text-2xl font-semibold">{catalog[id].name}{currentAccount?.plan === id ? <span className="current-plan-badge">[current]</span> : null}</h2>
                     <p className="mt-4 font-mono text-sm text-white/42">{catalog[id].credits} credits / month</p>
                     <p className="mt-3 text-4xl font-semibold">${catalog[id].price}<span className="text-sm text-white/42"> /mo</span></p>
                     <button className="mt-6 inline-flex w-full items-center justify-center border border-[#00e0aa]/40 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#00e0aa] transition hover:bg-[#00e0aa] hover:text-black" onClick={() => handleAdd(id)} type="button">
@@ -146,3 +146,4 @@ export default function CartPage() {
     </main>
   );
 }
+

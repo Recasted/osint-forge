@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState } from "react";
 
 import { InteractiveEffects } from "../interactive-effects";
 import { AccountRequired } from "./account-required";
-import { AccountState, getAccount, getRemainingSearches } from "../lib/account-store";
+import { AccountState, getAccount, getRemainingSearches, planLabel } from "../lib/account-store";
 import { ToolSidebar } from "../tool-sidebar";
 
 type ModulePageProps = {
@@ -18,6 +18,8 @@ type ModulePageProps = {
 
 export function ModulePage({ eyebrow, title, description, examples, locked = true }: ModulePageProps) {
   const [account, setAccount] = useState<AccountState | null>(() => getAccount());
+  const requiresPaidPlan = locked;
+  const hasModuleAccess = Boolean(account && (!requiresPaidPlan || account.plan !== "free"));
 
   return (
     <main className="min-h-screen bg-[#050607] px-4 py-4 pb-24 text-[#f3f4f0] sm:px-8 lg:px-10 xl:pb-5">
@@ -48,19 +50,17 @@ export function ModulePage({ eyebrow, title, description, examples, locked = tru
 
           {!account ? (
             <AccountRequired moduleName={eyebrow} onCreate={setAccount} />
-          ) : (
+          ) : hasModuleAccess ? (
             <>
-              <aside className={`mt-8 border p-5 sm:p-6 ${locked ? "border-[#f0b35a]/50 bg-[#1a1711]" : "border-[#00e0aa]/40 bg-[#00e0aa]/10"}`}>
-                <p className={`font-mono text-[11px] font-black uppercase tracking-[0.18em] ${locked ? "text-[#f0b35a]" : "text-[#00e0aa]"}`}>
-                  {locked ? "Plan module" : "Available"}
+              <aside className="mt-8 border border-[#00e0aa]/40 bg-[#00e0aa]/10 p-5 sm:p-6">
+                <p className="font-mono text-[11px] font-black uppercase tracking-[0.18em] text-[#00e0aa]">
+                  Included in {planLabel(account.plan)}
                 </p>
                 <h2 className="mt-3 text-2xl font-semibold text-white">
-                  {locked ? "This module has its own workspace ready." : "This module is live."}
+                  Module workspace unlocked.
                 </h2>
                 <p className="mt-4 max-w-2xl text-sm leading-7 text-white/62">
-                  {locked
-                    ? "The page is ready for access control, provider wiring, and plan checks. Once billing and provider APIs are connected, this module can unlock by subscription rank."
-                    : "This module is connected to the current search workflow."}
+                  Your {planLabel(account.plan)} plan can access this module. The provider wiring can be connected behind this workspace without sending you back through checkout.
                 </p>
                 <p className="mt-4 font-mono text-xs text-white/42">
                   {getRemainingSearches(account)} searches remaining this month.
@@ -74,6 +74,54 @@ export function ModulePage({ eyebrow, title, description, examples, locked = tru
                   </article>
                 ))}
               </div>
+
+              <form className="glow-card mt-8 border border-white/12 bg-[#080a0c] p-4 sm:p-5">
+                <div className="flex items-center justify-between gap-4">
+                  <label className="text-xs font-bold uppercase tracking-[0.18em] text-white/42" htmlFor="module-target">
+                    Module input
+                  </label>
+                  <span className="border border-[#00e0aa]/30 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[#00e0aa]">
+                    Ready
+                  </span>
+                </div>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                  <input
+                    id="module-target"
+                    className="min-h-11 flex-1 border border-white/10 bg-black px-3 font-mono text-xs text-white outline-none transition focus:border-[#00e0aa] sm:min-h-12 sm:px-4 sm:text-sm"
+                    placeholder="Enter target when provider API is connected..."
+                    type="search"
+                  />
+                  <button
+                    className="min-h-11 border border-white/16 px-5 text-xs font-black uppercase tracking-[0.12em] text-white/62 transition hover:border-white hover:text-white sm:min-h-12 sm:px-6 sm:text-sm sm:tracking-[0.14em]"
+                    type="button"
+                  >
+                    Queue search
+                  </button>
+                </div>
+              </form>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Link href="/account/" className="inline-flex min-h-11 items-center justify-center border border-white/16 px-5 text-xs font-black uppercase tracking-[0.12em] text-white transition hover:border-white hover:bg-white hover:text-black sm:min-h-12 sm:px-6 sm:text-sm sm:tracking-[0.14em]">
+                  Account dashboard
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <aside className="mt-8 border border-[#f0b35a]/50 bg-[#1a1711] p-5 sm:p-6">
+                <p className="font-mono text-[11px] font-black uppercase tracking-[0.18em] text-[#f0b35a]">
+                  Paid plan required
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold text-white">
+                  Upgrade to unlock this module.
+                </h2>
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-white/62">
+                  Your Free account is active, but this workspace is reserved for paid plans. Core, Professional, and Enterprise accounts can open it directly.
+                </p>
+                <p className="mt-4 font-mono text-xs text-white/42">
+                  {getRemainingSearches(account)} free searches remaining this month.
+                </p>
+              </aside>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link href="/cart/" className="inline-flex min-h-11 items-center justify-center border border-[#00e0aa]/40 px-5 text-xs font-black uppercase tracking-[0.12em] text-[#00e0aa] transition hover:bg-[#00e0aa] hover:text-black sm:min-h-12 sm:px-6 sm:text-sm sm:tracking-[0.14em]">

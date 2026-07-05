@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSyncExternalStore } from "react";
 
 type ToolItem = {
   label: string;
@@ -14,6 +15,28 @@ type ToolGroup = {
   title: string;
   items: ToolItem[];
 };
+
+function getPlanSnapshot() {
+  if (typeof window === "undefined") return "free";
+
+  try {
+    const raw = window.localStorage.getItem("osint-forge-account");
+    if (!raw) return "free";
+    return JSON.parse(raw).plan || "free";
+  } catch {
+    return "free";
+  }
+}
+
+function subscribeToAccount(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener("osint-forge-account", callback);
+
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener("osint-forge-account", callback);
+  };
+}
 
 const toolGroups: ToolGroup[] = [
   {
@@ -78,6 +101,8 @@ const mobileTools = [
 
 export function ToolSidebar() {
   const pathname = usePathname();
+  const plan = useSyncExternalStore(subscribeToAccount, getPlanSnapshot, () => "free");
+  const hasPaidPlan = plan !== "free";
 
   return (
     <>
@@ -98,18 +123,19 @@ export function ToolSidebar() {
                 <div className="tool-menu-items">
                   {group.items.map((tool) => {
                     const isActive = pathname === tool.href || (tool.href !== "/" && pathname?.startsWith(tool.href));
+                    const showLock = Boolean(tool.locked && !hasPaidPlan);
 
                     return (
                       <Link
                         key={`${group.title}-${tool.label}`}
                         className={`tool-rail-link${isActive ? " is-active" : ""}`}
                         href={tool.href}
-                        title={tool.locked ? `${tool.label} requires a paid plan when billing is connected` : tool.label}
+                        title={showLock ? `${tool.label} requires a paid plan` : tool.label}
                         aria-label={tool.label}
                       >
                         <span className="tool-rail-icon" aria-hidden="true">{tool.icon}</span>
                         <span className="tool-rail-label">{tool.label}</span>
-                        {tool.locked ? <span className="tool-rail-lock" aria-hidden="true">LOCK</span> : null}
+                        {showLock ? <span className="tool-rail-lock" aria-hidden="true">LOCK</span> : null}
                       </Link>
                     );
                   })}

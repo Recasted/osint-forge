@@ -1,4 +1,6 @@
-﻿import { AccountAccessButton } from "./account-access-button";
+﻿import type { PlanId } from "./lib/account-store";
+import { AccountAccessButton } from "./account-access-button";
+import { CurrentPlanBadge } from "./current-plan-badge";
 import { InteractiveEffects } from "./interactive-effects";
 import { SiteFooter } from "./site-footer";
 import { ToolSidebar } from "./tool-sidebar";
@@ -88,10 +90,10 @@ const workflow = [
   "Analysts review evidence, preserve source material, and export a structured brief.",
 ];
 
-const plans = [
-  { name: "Core", credits: "200", price: "$4.99", tier: "tier-core" },
-  { name: "Professional", credits: "450", price: "$14.99", tier: "tier-professional" },
-  { name: "Enterprise", credits: "1000", price: "$39.99", tier: "tier-enterprise" },
+const plans: { id: PlanId; name: string; credits: string; price: string; tier: string }[] = [
+  { id: "core", name: "Core", credits: "200", price: "$4.99", tier: "tier-core" },
+  { id: "professional", name: "Professional", credits: "450", price: "$14.99", tier: "tier-professional" },
+  { id: "enterprise", name: "Enterprise", credits: "1000", price: "$39.99", tier: "tier-enterprise" },
 ];
 
 const creditPacks = [
@@ -460,7 +462,7 @@ export default function Home() {
             {plans.map((plan) => (
               <article key={plan.name} className="glow-card bg-[#080a0c] p-6">
                 <h3 className={`subscription-rank ${plan.tier} text-2xl font-semibold`} data-rank={plan.name}>
-                  <span>{plan.name}</span>
+                  <span>{plan.name}</span><CurrentPlanBadge plan={plan.id} />
                   <i aria-hidden="true" />
                   <i aria-hidden="true" />
                   <i aria-hidden="true" />
@@ -557,6 +559,8 @@ export default function Home() {
     </main>
   );
 }
+
+
 
 
 
