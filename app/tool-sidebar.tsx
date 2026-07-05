@@ -13,6 +13,7 @@ type ToolItem = {
 
 type ToolGroup = {
   title: string;
+  info: string;
   items: ToolItem[];
 };
 
@@ -41,6 +42,7 @@ function subscribeToAccount(callback: () => void) {
 const toolGroups: ToolGroup[] = [
   {
     title: "OSINT Tools",
+    info: "General lookup modules for emails, network assets, vehicles, social handles, and reverse identifier pivots.",
     items: [
       { label: "Email OSINT", icon: "EM", href: "/tools/email/" },
       { label: "Network", icon: "NW", href: "/tools/network/" },
@@ -54,6 +56,7 @@ const toolGroups: ToolGroup[] = [
   },
   {
     title: "Gaming & Social",
+    info: "Social and gaming identity modules for Discord, Roblox, Minecraft, public aliases, and cross-platform links.",
     items: [
       { label: "Discord OSINT", icon: "DC", href: "/tools/discord/", locked: true },
       { label: "Discord History", icon: "DH", href: "/tools/discord-history/", locked: true },
@@ -63,6 +66,7 @@ const toolGroups: ToolGroup[] = [
   },
   {
     title: "Breach Data",
+    info: "Provider-backed exposure modules for breach intelligence, stealer log context, machine views, and broad source searches.",
     items: [
       { label: "Machine Viewer", icon: "MV", href: "/tools/machine-viewer/", locked: true },
       { label: "Stealerlogs", icon: "SL", href: "/tools/stealerlogs/", locked: true },
@@ -71,6 +75,7 @@ const toolGroups: ToolGroup[] = [
   },
   {
     title: "Risk & Identity",
+    info: "Risk-focused enrichment for emails, IPs, AML screening, phone numbers, card BIN metadata, and identity checks.",
     items: [
       { label: "Email Intelligence", icon: "EI", href: "/tools/email-intelligence/" },
       { label: "IP Intelligence", icon: "IP", href: "/tools/ip-intelligence/", locked: true },
@@ -82,6 +87,7 @@ const toolGroups: ToolGroup[] = [
   },
   {
     title: "Core Workspace",
+    info: "Main investigation pages for people search, handle search, and exporting reviewed findings into reports.",
     items: [
       { label: "People OSINT", icon: "PE", href: "/tools/people/" },
       { label: "Handle Search", icon: "HD", href: "/tools/handles/" },
@@ -116,10 +122,13 @@ export function ToolSidebar() {
           <nav className="tool-menu">
             {toolGroups.map((group) => (
               <section className="tool-menu-group" key={group.title}>
-                <div className="tool-menu-heading">
-                  <span>{group.title}</span>
-                  <span aria-hidden="true">?</span>
-                </div>
+                <details className="tool-group-info">
+                  <summary className="tool-menu-heading">
+                    <span>{group.title}</span>
+                    <span className="tool-info-mark" aria-label={`${group.title} info`}>?</span>
+                  </summary>
+                  <p className="tool-info-panel">{group.info}</p>
+                </details>
                 <div className="tool-menu-items">
                   {group.items.map((tool) => {
                     const isActive = pathname === tool.href || (tool.href !== "/" && pathname?.startsWith(tool.href));

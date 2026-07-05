@@ -1467,3 +1467,61 @@ html[data-theme="light"] .cursor-spark {
   text-transform: uppercase;
   vertical-align: middle;
 }
+
+.tool-group-info {
+  position: relative;
+}
+
+.tool-group-info summary {
+  list-style: none;
+}
+
+.tool-group-info summary::-webkit-details-marker {
+  display: none;
+}
+
+.tool-info-mark {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 1px solid transparent;
+  color: rgba(255, 255, 255, 0.48);
+  font-family: var(--font-geist-mono), "Courier New", monospace;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: help;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+
+.tool-group-info:hover .tool-info-mark,
+.tool-group-info:focus-within .tool-info-mark,
+.tool-group-info[open] .tool-info-mark {
+  border-color: rgba(0, 224, 170, 0.35);
+  background: rgba(0, 224, 170, 0.08);
+  color: #00e0aa;
+}
+
+.tool-info-panel {
+  display: none;
+  margin: 4px 2px 6px;
+  border: 1px solid rgba(0, 224, 170, 0.22);
+  background: rgba(6, 13, 13, 0.96);
+  padding: 8px 9px;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 11px;
+  line-height: 1.55;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+.tool-group-info:hover .tool-info-panel,
+.tool-group-info:focus-within .tool-info-panel,
+.tool-group-info[open] .tool-info-panel {
+  display: block;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tool-group-info:not(:hover):not(:focus-within) .tool-info-panel {
+    display: none;
+  }
+}
