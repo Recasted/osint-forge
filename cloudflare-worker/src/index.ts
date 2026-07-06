@@ -1,4 +1,4 @@
-﻿type Env = {
+type Env = {
   ALLOWED_ORIGINS?: string;
   HIBP_API_KEY?: string;
   OSINTCAT_API_KEY?: string;
@@ -235,12 +235,6 @@ async function createNowPaymentsInvoice(request: Request, env: Env) {
       success_url: `${siteUrl}/account/?crypto=success&plan=${plan}`,
       cancel_url: `${siteUrl}/cart/?crypto=cancelled`,
       is_fixed_rate: true,
-      metadata: {
-        plan,
-        email: body?.email || "",
-        username: body?.username || "",
-        client_ip: getClientIp(request),
-      },
     }),
   });
 
