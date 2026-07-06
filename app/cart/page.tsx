@@ -4,7 +4,7 @@ import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 
 import { InteractiveEffects } from "../interactive-effects";
-import { createStripeCheckout } from "../lib/api-client";
+import { createNowPaymentsInvoice, createStripeCheckout } from "../lib/api-client";
 import { addToCart, CartItem, CartItemId, catalog, clearCart, getAccount, getCart, removeFromCart } from "../lib/account-store";
 import { ToolSidebar } from "../tool-sidebar";
 
@@ -25,7 +25,7 @@ export default function CartPage() {
   const [username, setUsername] = useState(() => currentAccount?.username ?? "");
   const [email, setEmail] = useState(() => currentAccount?.email ?? "");
   const [message, setMessage] = useState("");
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState<"stripe" | "crypto" | null>(null);
 
   const total = useMemo(() => items.reduce((sum, item) => sum + item.price, 0), [items]);
 
@@ -48,7 +48,7 @@ export default function CartPage() {
       return;
     }
 
-    setIsCheckingOut(true);
+    setIsCheckingOut("stripe");
     setMessage("");
 
     try {
@@ -56,10 +56,31 @@ export default function CartPage() {
       window.location.href = checkoutUrl;
     } catch (checkoutError) {
       setMessage(checkoutError instanceof Error ? checkoutError.message : "Stripe checkout failed.");
-      setIsCheckingOut(false);
+      setIsCheckingOut(null);
     }
   }
 
+
+  async function handleCryptoCheckout() {
+    if (!email.trim() || !username.trim()) return;
+
+    const subscription = items.find((item) => item.kind === "subscription");
+    if (!subscription || !["core", "professional", "enterprise"].includes(subscription.id)) {
+      setMessage("Add a subscription plan before opening crypto checkout.");
+      return;
+    }
+
+    setIsCheckingOut("crypto");
+    setMessage("");
+
+    try {
+      const invoiceUrl = await createNowPaymentsInvoice(subscription.id as "core" | "professional" | "enterprise", email.trim(), username.trim());
+      window.location.href = invoiceUrl;
+    } catch (checkoutError) {
+      setMessage(checkoutError instanceof Error ? checkoutError.message : "Crypto checkout failed.");
+      setIsCheckingOut(null);
+    }
+  }
   return (
     <main className="min-h-screen bg-[#050607] px-4 py-4 pb-24 text-[#f3f4f0] sm:px-8 lg:px-10 xl:pb-5">
       <InteractiveEffects />
@@ -150,14 +171,17 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <button className="mt-5 inline-flex w-full items-center justify-center border border-[#00e0aa]/40 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#00e0aa] transition hover:bg-[#00e0aa] hover:text-black disabled:cursor-not-allowed disabled:opacity-50" disabled={isCheckingOut || !items.length || !email.trim() || !username.trim()} type="submit">
-                {isCheckingOut ? "Opening Stripe" : "Checkout with Stripe"}
+              <button className="mt-5 inline-flex w-full items-center justify-center border border-[#00e0aa]/40 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#00e0aa] transition hover:bg-[#00e0aa] hover:text-black disabled:cursor-not-allowed disabled:opacity-50" disabled={Boolean(isCheckingOut) || !items.length || !email.trim() || !username.trim()} type="submit">
+                {isCheckingOut === "stripe" ? "Opening Stripe" : "Checkout with Stripe"}
+              </button>
+              <button className="mt-3 inline-flex w-full items-center justify-center border border-[#f0b35a]/45 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#f0b35a] transition hover:bg-[#f0b35a] hover:text-black disabled:cursor-not-allowed disabled:opacity-50" disabled={Boolean(isCheckingOut) || !items.length || !email.trim() || !username.trim()} onClick={handleCryptoCheckout} type="button">
+                {isCheckingOut === "crypto" ? "Opening Crypto" : "Checkout with Crypto"}
               </button>
               <button className="mt-3 inline-flex w-full items-center justify-center border border-white/16 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/62 transition hover:border-white hover:text-white" onClick={() => { clearCart(); setItems([]); }} type="button">
                 Clear cart
               </button>
               {message ? <p className="mt-4 border border-[#f0b35a]/30 bg-[#f0b35a]/10 px-3 py-2 text-sm leading-6 text-[#f0d39a]">{message}</p> : null}
-              <p className="mt-4 text-xs leading-6 text-white/38">Stripe Checkout opens for subscription plans. Credit packs and crypto payments can be wired after subscriptions are live.</p>
+              <p className="mt-4 text-xs leading-6 text-white/38">Stripe uses Checkout Sessions. Crypto checkout uses a NOWPayments hosted invoice for subscription plans.</p>
             </form>
           </div>
         </section>
@@ -165,3 +189,4 @@ export default function CartPage() {
     </main>
   );
 }
+

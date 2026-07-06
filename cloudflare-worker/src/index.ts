@@ -4,6 +4,8 @@
   OSINTCAT_API_KEY?: string;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
+  NOWPAYMENTS_API_KEY?: string;
+  NOWPAYMENTS_IPN_SECRET?: string;
   STRIPE_PRICE_CORE?: string;
   STRIPE_PRICE_PROFESSIONAL?: string;
   STRIPE_PRICE_ENTERPRISE?: string;
@@ -54,7 +56,7 @@ function corsHeaders(request: Request, env: Env) {
   return {
     "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Stripe-Signature",
+    "Access-Control-Allow-Headers": "Content-Type, Stripe-Signature, x-nowpayments-sig",
     "Vary": "Origin",
   };
 }
@@ -206,6 +208,81 @@ async function handleStripeWebhook(request: Request, env: Env) {
   return json({ received: true }, request, env);
 }
 
+
+async function createNowPaymentsInvoice(request: Request, env: Env) {
+  if (!env.NOWPAYMENTS_API_KEY) return { error: "Missing NOWPAYMENTS_API_KEY Worker secret." };
+
+  const body = (await request.json().catch(() => null)) as { plan?: PlanId; email?: string; username?: string } | null;
+  const plan = body?.plan;
+  if (!plan || !["core", "professional", "enterprise"].includes(plan)) return { error: "Invalid plan." };
+
+  const siteUrl = (env.SITE_URL || request.headers.get("Origin") || "https://osintforge.dev").replace(/\/$/, "");
+  const amount = plan === "core" ? 4.99 : plan === "professional" ? 14.99 : 39.99;
+  const orderId = `osint-forge-${plan}-${Date.now()}`;
+
+  const response = await fetch("https://api.nowpayments.io/v1/invoice", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": env.NOWPAYMENTS_API_KEY,
+    },
+    body: JSON.stringify({
+      price_amount: amount,
+      price_currency: "usd",
+      order_id: orderId,
+      order_description: `OSINT Forge ${plan} subscription`,
+      ipn_callback_url: `${new URL(request.url).origin}/api/nowpayments/ipn`,
+      success_url: `${siteUrl}/account/?crypto=success&plan=${plan}`,
+      cancel_url: `${siteUrl}/cart/?crypto=cancelled`,
+      is_fixed_rate: true,
+      metadata: {
+        plan,
+        email: body?.email || "",
+        username: body?.username || "",
+        client_ip: getClientIp(request),
+      },
+    }),
+  });
+
+  const data = (await response.json().catch(() => null)) as { invoice_url?: string; id?: string; message?: string; error?: string } | null;
+  if (!response.ok || !data?.invoice_url) return { error: data?.message || data?.error || "NOWPayments invoice creation failed." };
+  return { ok: true, url: data.invoice_url, invoiceId: data.id, orderId };
+}
+
+function sortObject(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortObject);
+  if (value && typeof value === "object") {
+    return Object.keys(value as Record<string, unknown>).sort().reduce<Record<string, unknown>>((sorted, key) => {
+      sorted[key] = sortObject((value as Record<string, unknown>)[key]);
+      return sorted;
+    }, {});
+  }
+  return value;
+}
+
+async function verifyNowPaymentsSignature(payload: string, signature: string | null, secret?: string) {
+  if (!secret || !signature) return false;
+  const parsed = JSON.parse(payload) as unknown;
+  const sortedPayload = JSON.stringify(sortObject(parsed));
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-512" }, false, ["sign"]);
+  const digest = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(sortedPayload));
+  return safeEqual(hex(digest), signature.toLowerCase());
+}
+
+async function handleNowPaymentsIpn(request: Request, env: Env) {
+  const payload = await request.text();
+  const valid = await verifyNowPaymentsSignature(payload, request.headers.get("x-nowpayments-sig"), env.NOWPAYMENTS_IPN_SECRET);
+  if (env.NOWPAYMENTS_IPN_SECRET && !valid) return json({ error: "Invalid NOWPayments signature." }, request, env, 400);
+
+  const event = JSON.parse(payload) as { payment_status?: string; order_id?: string; price_amount?: number; price_currency?: string; actually_paid?: number; pay_currency?: string; invoice_id?: string };
+  if (env.DB) {
+    await env.DB.prepare("insert into crypto_payments (order_id, invoice_id, payment_status, price_amount, price_currency, actually_paid, pay_currency, raw_payload) values (?, ?, ?, ?, ?, ?, ?, ?)")
+      .bind(event.order_id || "", event.invoice_id || "", event.payment_status || "", event.price_amount || 0, event.price_currency || "", event.actually_paid || 0, event.pay_currency || "", payload)
+      .run();
+  }
+
+  return json({ received: true }, request, env);
+}
 async function peopleSearch(query: string, env: Env): Promise<SearchResult> {
   const signals: Signal[] = [
     {
@@ -307,8 +384,10 @@ const worker = {
     const route = url.pathname.replace(/\/$/, "");
 
     if (route === "/api/stripe/webhook" && request.method === "POST") return handleStripeWebhook(request, env);
+    if (route === "/api/nowpayments/ipn" && request.method === "POST") return handleNowPaymentsIpn(request, env);
     if (route === "/" || route === "/api/health") return json({ ok: true, kind: "health", query: "health", generatedAt: new Date().toISOString(), summary: "OSINT Forge API is online.", signals: [], sources: [] }, request, env);
     if (route === "/api/stripe/checkout" && request.method === "POST") return json(await createStripeCheckout(request, env), request, env);
+    if (route === "/api/nowpayments/invoice" && request.method === "POST") return json(await createNowPaymentsInvoice(request, env), request, env);
 
     if (request.method !== "POST" && request.method !== "GET") return json({ error: "Method not allowed" }, request, env, 405);
 

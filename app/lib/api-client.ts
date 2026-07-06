@@ -68,3 +68,22 @@ export async function createStripeCheckout(plan: "core" | "professional" | "ente
 
   return data.url;
 }
+
+export async function createNowPaymentsInvoice(plan: "core" | "professional" | "enterprise", email: string, username: string) {
+  const response = await fetch(`${getApiBaseUrl()}/api/nowpayments/invoice`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ plan, email, username }),
+  });
+
+  const data = (await response.json().catch(() => null)) as { ok?: boolean; url?: string; error?: string } | null;
+
+  if (!response.ok || !data?.url) {
+    throw new Error(data?.error || "Crypto checkout failed.");
+  }
+
+  return data.url;
+}
+
