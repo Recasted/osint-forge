@@ -4,7 +4,8 @@ import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 
 import { InteractiveEffects } from "../interactive-effects";
-import { activateCart, addToCart, CartItem, CartItemId, catalog, clearCart, getAccount, getCart, removeFromCart } from "../lib/account-store";
+import { createStripeCheckout } from "../lib/api-client";
+import { addToCart, CartItem, CartItemId, catalog, clearCart, getAccount, getCart, removeFromCart } from "../lib/account-store";
 import { ToolSidebar } from "../tool-sidebar";
 
 export default function CartPage() {
@@ -24,6 +25,7 @@ export default function CartPage() {
   const [username, setUsername] = useState(() => currentAccount?.username ?? "");
   const [email, setEmail] = useState(() => currentAccount?.email ?? "");
   const [message, setMessage] = useState("");
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const total = useMemo(() => items.reduce((sum, item) => sum + item.price, 0), [items]);
 
@@ -36,12 +38,26 @@ export default function CartPage() {
     setItems(removeFromCart(id));
   }
 
-  function handleCheckout(event: FormEvent<HTMLFormElement>) {
+  async function handleCheckout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!email.trim() || !username.trim()) return;
-    activateCart(email.trim(), username.trim());
-    setItems([]);
-    setMessage("Checkout prototype complete. Your local account plan is active in this browser.");
+
+    const subscription = items.find((item) => item.kind === "subscription");
+    if (!subscription || !["core", "professional", "enterprise"].includes(subscription.id)) {
+      setMessage("Add a subscription plan before opening Stripe Checkout.");
+      return;
+    }
+
+    setIsCheckingOut(true);
+    setMessage("");
+
+    try {
+      const checkoutUrl = await createStripeCheckout(subscription.id as "core" | "professional" | "enterprise", email.trim(), username.trim());
+      window.location.href = checkoutUrl;
+    } catch (checkoutError) {
+      setMessage(checkoutError instanceof Error ? checkoutError.message : "Stripe checkout failed.");
+      setIsCheckingOut(false);
+    }
   }
 
   return (
@@ -66,7 +82,7 @@ export default function CartPage() {
             Subscribe or add investigation credits.
           </h1>
           <p className="mt-5 max-w-2xl text-sm leading-7 text-white/62 sm:mt-6 sm:text-base sm:leading-8">
-            Pick a plan, review the order, and connect Stripe or crypto payments through the Worker when you are ready to accept real purchases.
+            Pick a plan, review the order, and open Stripe Checkout for secure subscription payment.
           </p>
 
           <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
@@ -77,6 +93,9 @@ export default function CartPage() {
                     <h2 className="flex flex-wrap items-center gap-2 text-2xl font-semibold">{catalog[id].name}{currentAccount?.plan === id ? <span className="current-plan-badge">[current]</span> : null}</h2>
                     <p className="mt-4 font-mono text-sm text-white/42">{catalog[id].credits} credits / month</p>
                     <p className="mt-3 text-4xl font-semibold">${catalog[id].price}<span className="text-sm text-white/42"> /mo</span></p>
+                    <p className={`mt-4 border px-3 py-2 text-xs leading-5 ${id === "core" ? "border-[#f0b35a]/35 bg-[#f0b35a]/10 text-[#f0d39a]" : "border-[#00e0aa]/30 bg-[#00e0aa]/10 text-[#9fffe7]"}`}>
+                      {id === "core" ? "Breach Data requires Professional+." : "Breach Data unlocked."}
+                    </p>
                     <button className="mt-6 inline-flex w-full items-center justify-center border border-[#00e0aa]/40 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#00e0aa] transition hover:bg-[#00e0aa] hover:text-black" onClick={() => handleAdd(id)} type="button">
                       Add plan
                     </button>
@@ -131,14 +150,14 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <button className="mt-5 inline-flex w-full items-center justify-center border border-[#00e0aa]/40 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#00e0aa] transition hover:bg-[#00e0aa] hover:text-black disabled:cursor-not-allowed disabled:opacity-50" disabled={!items.length || !email.trim() || !username.trim()} type="submit">
-                Prototype checkout
+              <button className="mt-5 inline-flex w-full items-center justify-center border border-[#00e0aa]/40 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#00e0aa] transition hover:bg-[#00e0aa] hover:text-black disabled:cursor-not-allowed disabled:opacity-50" disabled={isCheckingOut || !items.length || !email.trim() || !username.trim()} type="submit">
+                {isCheckingOut ? "Opening Stripe" : "Checkout with Stripe"}
               </button>
               <button className="mt-3 inline-flex w-full items-center justify-center border border-white/16 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/62 transition hover:border-white hover:text-white" onClick={() => { clearCart(); setItems([]); }} type="button">
                 Clear cart
               </button>
-              {message ? <p className="mt-4 border border-[#00e0aa]/30 bg-[#00e0aa]/10 px-3 py-2 text-sm leading-6 text-[#9fffe7]">{message}</p> : null}
-              <p className="mt-4 text-xs leading-6 text-white/38">Payment collection is not connected yet. This shell is ready for Stripe Checkout and your separate crypto pay service through Cloudflare.</p>
+              {message ? <p className="mt-4 border border-[#f0b35a]/30 bg-[#f0b35a]/10 px-3 py-2 text-sm leading-6 text-[#f0d39a]">{message}</p> : null}
+              <p className="mt-4 text-xs leading-6 text-white/38">Stripe Checkout opens for subscription plans. Credit packs and crypto payments can be wired after subscriptions are live.</p>
             </form>
           </div>
         </section>
@@ -146,4 +165,3 @@ export default function CartPage() {
     </main>
   );
 }
-

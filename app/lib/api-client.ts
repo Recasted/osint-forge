@@ -1,4 +1,4 @@
-export type SearchKind = "people" | "domains" | "handles";
+﻿export type SearchKind = "people" | "domains" | "handles";
 
 export type SearchResponse = {
   ok: boolean;
@@ -50,4 +50,21 @@ export async function runToolSearch(kind: SearchKind, query: string) {
   }
 
   return data;
+}
+export async function createStripeCheckout(plan: "core" | "professional" | "enterprise", email: string, username: string) {
+  const response = await fetch(`${getApiBaseUrl()}/api/stripe/checkout`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ plan, email, username }),
+  });
+
+  const data = (await response.json().catch(() => null)) as { ok?: boolean; url?: string; error?: string } | null;
+
+  if (!response.ok || !data?.url) {
+    throw new Error(data?.error || "Stripe checkout failed.");
+  }
+
+  return data.url;
 }

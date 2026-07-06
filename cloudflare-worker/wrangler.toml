@@ -1,7 +1,11 @@
-name = "osint-forge-api"
+﻿name = "osint-forge-api"
 main = "src/index.ts"
 compatibility_date = "2026-07-05"
 workers_dev = true
 
 [vars]
-ALLOWED_ORIGINS = "http://localhost:3000,http://127.0.0.1:3000"
+ALLOWED_ORIGINS = "http://localhost:3000,http://127.0.0.1:3000,https://osintforge.dev,https://www.osintforge.dev"
+SITE_URL = "https://osintforge.dev"
+STRIPE_PRICE_CORE = "price_REPLACE_CORE"
+STRIPE_PRICE_PROFESSIONAL = "price_REPLACE_PROFESSIONAL"
+STRIPE_PRICE_ENTERPRISE = "price_REPLACE_ENTERPRISE"
