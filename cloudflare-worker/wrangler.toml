@@ -1,4 +1,4 @@
-﻿name = "osint-forge-api"
+name = "osint-forge-api"
 main = "src/index.ts"
 compatibility_date = "2026-07-05"
 workers_dev = true
