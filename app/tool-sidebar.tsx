@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 
 type RequiredPlan = "core" | "professional" | "enterprise";
+
+const toolRailScrollKey = "osint-forge-tool-rail-scroll";
 
 type ToolItem = {
   label: string;
@@ -131,12 +133,27 @@ const mobileTools = [
 
 export function ToolSidebar() {
   const pathname = usePathname();
+  const railInnerRef = useRef<HTMLDivElement | null>(null);
   const plan = useSyncExternalStore(subscribeToAccount, getPlanSnapshot, () => "free");
+
+  useEffect(() => {
+    const railInner = railInnerRef.current;
+    if (!railInner || typeof window === "undefined") return;
+
+    const savedScroll = Number(window.sessionStorage.getItem(toolRailScrollKey) || "0");
+    if (savedScroll > 0) railInner.scrollTop = savedScroll;
+  }, [pathname]);
+
+  function rememberRailScroll() {
+    const railInner = railInnerRef.current;
+    if (!railInner || typeof window === "undefined") return;
+    window.sessionStorage.setItem(toolRailScrollKey, String(railInner.scrollTop));
+  }
 
   return (
     <>
       <aside className="tool-rail" aria-label="OSINT Forge tools">
-        <div className="tool-rail-inner">
+        <div className="tool-rail-inner" ref={railInnerRef} onScroll={rememberRailScroll}>
           <Link href="/" className="tool-rail-brand" aria-label="OSINT Forge home">
             <span>OF</span>
             <strong>OSINT Forge</strong>

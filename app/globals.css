@@ -1525,3 +1525,25 @@ html[data-theme="light"] .cursor-spark {
     display: none;
   }
 }
+.subscription-rank.tier-admin,
+.account-rank-link .subscription-rank.tier-admin,
+h2 .subscription-rank.tier-admin {
+  --tier-color: #7a090f;
+  --tier-spark: #ff2638;
+  color: #7a090f !important;
+  -webkit-text-fill-color: #7a090f;
+  text-shadow:
+    0 0 8px rgba(122, 9, 15, 0.86),
+    0 0 18px rgba(255, 38, 56, 0.34) !important;
+}
+
+.subscription-rank.tier-admin::before {
+  background: radial-gradient(circle, rgba(122, 9, 15, 0.34), transparent 62%);
+}
+
+.subscription-rank.tier-admin i {
+  background: #ff2638 !important;
+  box-shadow:
+    0 0 10px rgba(255, 38, 56, 0.95),
+    0 0 18px rgba(122, 9, 15, 0.92) !important;
+}
