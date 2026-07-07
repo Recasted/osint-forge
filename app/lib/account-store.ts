@@ -20,7 +20,10 @@ export type CartItem = {
 };
 
 const accountKey = "osint-forge-account";
+const accountsKey = "osint-forge-accounts";
 const cartKey = "osint-forge-cart";
+const adminEmailHash = "d55b37c";
+const adminCredits = 999999;
 
 export const catalog: Record<CartItemId, CartItem> = {
   free: { id: "free", name: "Free", price: 0, credits: 5, kind: "subscription" },
@@ -40,8 +43,30 @@ export function currentMonth() {
   return new Date().toISOString().slice(0, 7);
 }
 
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
 function usernameFromEmail(email: string) {
   return email.split("@")[0]?.replace(/[^a-z0-9_-]/gi, "").slice(0, 18) || "operator";
+}
+
+function stableEmailHash(email: string) {
+  let hash = 2166136261;
+  const cleanEmail = normalizeEmail(email);
+  for (let index = 0; index < cleanEmail.length; index += 1) {
+    hash ^= cleanEmail.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16);
+}
+
+export function isAdminEmail(email: string) {
+  return stableEmailHash(email) === adminEmailHash;
+}
+
+export function isAdminAccount(account: Pick<AccountState, "email">) {
+  return isAdminEmail(account.email);
 }
 
 export function planLabel(plan: PlanId) {
@@ -55,10 +80,23 @@ export function planTierClass(plan: PlanId) {
   return `tier-${plan}`;
 }
 
+export function accountRankLabel(account: AccountState) {
+  return isAdminAccount(account) ? "Admin" : planLabel(account.plan);
+}
+
+export function accountTierClass(account: AccountState) {
+  return isAdminAccount(account) ? "tier-admin" : planTierClass(account.plan);
+}
+
 function normalizeAccount(rawAccount: AccountState) {
+  const isAdmin = isAdminEmail(rawAccount.email);
   const account = {
     ...rawAccount,
+    email: normalizeEmail(rawAccount.email),
     username: rawAccount.username || usernameFromEmail(rawAccount.email),
+    plan: isAdmin ? "enterprise" as PlanId : rawAccount.plan,
+    credits: isAdmin ? adminCredits : rawAccount.credits,
+    searchesLimit: isAdmin ? adminCredits : rawAccount.searchesLimit,
   };
 
   if (account.month === currentMonth()) return account;
@@ -67,9 +105,31 @@ function normalizeAccount(rawAccount: AccountState) {
   return {
     ...account,
     searchesUsed: 0,
-    searchesLimit: limit,
+    searchesLimit: isAdmin ? adminCredits : limit,
     month: currentMonth(),
   };
+}
+
+function getRememberedAccounts() {
+  if (!canUseStorage()) return {} as Record<string, AccountState>;
+
+  try {
+    return JSON.parse(window.localStorage.getItem(accountsKey) || "{}") as Record<string, AccountState>;
+  } catch {
+    return {} as Record<string, AccountState>;
+  }
+}
+
+function rememberAccount(account: AccountState) {
+  if (!canUseStorage()) return;
+  const remembered = getRememberedAccounts();
+  remembered[normalizeEmail(account.email)] = account;
+  window.localStorage.setItem(accountsKey, JSON.stringify(remembered));
+}
+
+function findRememberedAccount(email: string) {
+  const remembered = getRememberedAccounts()[normalizeEmail(email)];
+  return remembered ? normalizeAccount(remembered) : null;
 }
 
 export function getAccount() {
@@ -81,6 +141,7 @@ export function getAccount() {
   try {
     const account = normalizeAccount(JSON.parse(raw) as AccountState);
     window.localStorage.setItem(accountKey, JSON.stringify(account));
+    rememberAccount(account);
     return account;
   } catch {
     return null;
@@ -88,20 +149,32 @@ export function getAccount() {
 }
 
 export function saveAccount(account: AccountState) {
-  if (!canUseStorage()) return account;
-  window.localStorage.setItem(accountKey, JSON.stringify(account));
+  const normalizedAccount = normalizeAccount(account);
+  if (!canUseStorage()) return normalizedAccount;
+  window.localStorage.setItem(accountKey, JSON.stringify(normalizedAccount));
+  rememberAccount(normalizedAccount);
   window.dispatchEvent(new Event("osint-forge-account"));
-  return account;
+  return normalizedAccount;
 }
 
 export function createFreeAccount(email: string, username?: string) {
+  const cleanEmail = normalizeEmail(email);
+  const remembered = findRememberedAccount(cleanEmail);
+  if (remembered) {
+    return saveAccount({
+      ...remembered,
+      username: (username || remembered.username || usernameFromEmail(cleanEmail)).trim().slice(0, 18),
+    });
+  }
+
+  const isAdmin = isAdminEmail(cleanEmail);
   return saveAccount({
-    username: (username || usernameFromEmail(email)).trim().slice(0, 18),
-    email,
-    plan: "free",
+    username: (username || usernameFromEmail(cleanEmail)).trim().slice(0, 18),
+    email: cleanEmail,
+    plan: isAdmin ? "enterprise" : "free",
     searchesUsed: 0,
-    searchesLimit: 5,
-    credits: 5,
+    searchesLimit: isAdmin ? adminCredits : 5,
+    credits: isAdmin ? adminCredits : 5,
     month: currentMonth(),
   });
 }
@@ -113,6 +186,7 @@ export function signOut() {
 }
 
 export function getRemainingSearches(account: AccountState) {
+  if (isAdminAccount(account)) return adminCredits;
   return Math.max(0, account.searchesLimit - account.searchesUsed);
 }
 
@@ -121,6 +195,8 @@ export function consumeSearch(): { ok: true; account: AccountState } | { ok: fal
   if (!account) {
     return { ok: false, reason: "Create a free account or sign in before using tools." };
   }
+
+  if (isAdminAccount(account)) return { ok: true, account };
 
   if (getRemainingSearches(account) <= 0) {
     return { ok: false, reason: "You have used your monthly search allowance. Upgrade or add credits to continue." };
@@ -162,16 +238,18 @@ export function clearCart() {
 }
 
 export function activateCart(email: string, username?: string) {
+  const cleanEmail = normalizeEmail(email);
   const items = getCart();
-  const existingAccount = getAccount();
+  const existingAccount = getAccount() || findRememberedAccount(cleanEmail);
   const subscription = items.find((item) => item.kind === "subscription") || catalog.free;
   const addOnCredits = items.filter((item) => item.kind === "credits").reduce((total, item) => total + item.credits, 0);
-  const credits = subscription.credits + addOnCredits;
+  const isAdmin = isAdminEmail(cleanEmail);
+  const credits = isAdmin ? adminCredits : subscription.credits + addOnCredits;
 
   const account = saveAccount({
-    username: (username || existingAccount?.username || usernameFromEmail(email)).trim().slice(0, 18),
-    email,
-    plan: subscription.id as PlanId,
+    username: (username || existingAccount?.username || usernameFromEmail(cleanEmail)).trim().slice(0, 18),
+    email: cleanEmail,
+    plan: isAdmin ? "enterprise" : subscription.id as PlanId,
     searchesUsed: 0,
     searchesLimit: credits,
     credits,

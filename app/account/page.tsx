@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 import { InteractiveEffects } from "../interactive-effects";
-import { AccountState, createFreeAccount, getAccount, getRemainingSearches, planLabel, planTierClass, signOut } from "../lib/account-store";
+import { AccountState, accountRankLabel, accountTierClass, createFreeAccount, getAccount, getRemainingSearches, signOut } from "../lib/account-store";
 import { ThemeControl } from "../theme-control";
 import { ToolSidebar } from "../tool-sidebar";
 
@@ -19,8 +19,8 @@ const dashboardModules = [
 
 function RankBadge({ account }: { account: AccountState }) {
   return (
-    <span className={`subscription-rank ${planTierClass(account.plan)}`}>
-      [{planLabel(account.plan)}]
+    <span className={`subscription-rank ${accountTierClass(account)}`}>
+      [{accountRankLabel(account)}]
       <i />
       <i />
       <i />

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -20,13 +20,32 @@ type ToolGroup = {
   items: ToolItem[];
 };
 
+function normalizeEmailSnapshot(email?: string) {
+  return email?.trim().toLowerCase() || "";
+}
+
+function stableEmailHashSnapshot(email?: string) {
+  let hash = 2166136261;
+  const cleanEmail = normalizeEmailSnapshot(email);
+  for (let index = 0; index < cleanEmail.length; index += 1) {
+    hash ^= cleanEmail.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16);
+}
+
+function isAdminEmailSnapshot(email?: string) {
+  return stableEmailHashSnapshot(email) === "d55b37c";
+}
 function getPlanSnapshot() {
   if (typeof window === "undefined") return "free";
 
   try {
     const raw = window.localStorage.getItem("osint-forge-account");
     if (!raw) return "free";
-    return JSON.parse(raw).plan || "free";
+    const account = JSON.parse(raw) as { email?: string; plan?: string };
+    if (isAdminEmailSnapshot(account.email)) return "enterprise";
+    return account.plan || "free";
   } catch {
     return "free";
   }

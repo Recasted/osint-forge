@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { AccountState, getAccount, planLabel, planTierClass } from "./lib/account-store";
+import { AccountState, accountRankLabel, accountTierClass, getAccount } from "./lib/account-store";
 
 export function AccountAccessButton() {
   const [account, setAccount] = useState<AccountState | null>(null);
@@ -41,8 +41,8 @@ export function AccountAccessButton() {
       title="Open account dashboard"
     >
       <span>{account.username}</span>
-      <span className={`subscription-rank ${planTierClass(account.plan)}`}>
-        [{planLabel(account.plan)}]
+      <span className={`subscription-rank ${accountTierClass(account)}`}>
+        [{accountRankLabel(account)}]
         <i />
         <i />
         <i />
