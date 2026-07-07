@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -56,22 +56,7 @@ export function ModulePage({ eyebrow, title, description, examples, locked = tru
             <AccountRequired moduleName={eyebrow} onCreate={setAccount} />
           ) : hasModuleAccess ? (
             <>
-              <aside className="mt-8 border border-[#00e0aa]/40 bg-[#00e0aa]/10 p-5 sm:p-6">
-                <p className="font-mono text-[11px] font-black uppercase tracking-[0.18em] text-[#00e0aa]">
-                  Included in {planLabel(account.plan)}
-                </p>
-                <h2 className="mt-3 text-2xl font-semibold text-white">
-                  Module workspace unlocked.
-                </h2>
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-white/62">
-                  Your {planLabel(account.plan)} plan can access this module. The provider wiring can be connected behind this workspace without sending you back through checkout.
-                </p>
-                <p className="mt-4 font-mono text-xs text-white/42">
-                  {getRemainingSearches(account)} searches remaining this month.
-                </p>
-              </aside>
-
-              <div className="mt-8 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3" data-reveal>
+<div className="mt-8 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3" data-reveal>
                 {examples.map((example) => (
                   <article key={example} className="glow-card bg-[#050607] p-5">
                     <p className="font-mono text-sm text-white/54">{example}</p>
