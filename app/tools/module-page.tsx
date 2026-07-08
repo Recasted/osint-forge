@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 
 import { InteractiveEffects } from "../interactive-effects";
 import { AccountRequired } from "./account-required";
-import { AccountState, getAccount, getRemainingSearches, PlanId, planLabel } from "../lib/account-store";
+import { AccountState, consumeSearch, getAccount, getRemainingSearches, PlanId, planLabel } from "../lib/account-store";
+import { ModuleKind, runModuleSearch, SearchResponse } from "../lib/api-client";
 import { ToolSidebar } from "../tool-sidebar";
 
 type ModulePageProps = {
@@ -19,11 +21,59 @@ type ModulePageProps = {
 
 const planRank: Record<PlanId, number> = { free: 0, core: 1, professional: 2, enterprise: 3 };
 
+function moduleKindFromPath(pathname: string | null): ModuleKind {
+  const segment = pathname?.split("/").filter(Boolean).at(-1) || "universal-search";
+  return segment as ModuleKind;
+}
+
 export function ModulePage({ eyebrow, title, description, examples, locked = true, requiredPlan = "core" }: ModulePageProps) {
+  const pathname = usePathname();
+  const moduleKind = moduleKindFromPath(pathname);
+  const [query, setQuery] = useState("");
+  const [result, setResult] = useState<SearchResponse | null>(null);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [account, setAccount] = useState<AccountState | null>(() => getAccount());
   const requiresPaidPlan = locked;
   const hasModuleAccess = Boolean(account && (!requiresPaidPlan || planRank[account.plan] >= planRank[requiredPlan]));
   const requiredPlanLabel = planLabel(requiredPlan);
+
+  const statusText = useMemo(() => {
+    if (isLoading) return "Running";
+    if (result) return "Complete";
+    if (error) return "Needs review";
+    return "Ready";
+  }, [error, isLoading, result]);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+
+    const cleanQuery = query.trim();
+    if (!cleanQuery) {
+      setError("Enter a target first.");
+      return;
+    }
+
+    const quota = consumeSearch();
+    if (!quota.ok) {
+      setError(quota.reason);
+      setAccount(getAccount());
+      return;
+    }
+
+    if (quota.account) setAccount(quota.account);
+    setIsLoading(true);
+
+    try {
+      setResult(await runModuleSearch(moduleKind, cleanQuery));
+    } catch (searchError) {
+      setResult(null);
+      setError(searchError instanceof Error ? searchError.message : "Search failed.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-[#050607] px-4 py-4 pb-24 text-[#f3f4f0] sm:px-8 lg:px-10 xl:pb-5">
@@ -56,7 +106,7 @@ export function ModulePage({ eyebrow, title, description, examples, locked = tru
             <AccountRequired moduleName={eyebrow} onCreate={setAccount} />
           ) : hasModuleAccess ? (
             <>
-<div className="mt-8 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3" data-reveal>
+              <div className="mt-8 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3" data-reveal>
                 {examples.map((example) => (
                   <article key={example} className="glow-card bg-[#050607] p-5">
                     <p className="font-mono text-sm text-white/54">{example}</p>
@@ -64,30 +114,62 @@ export function ModulePage({ eyebrow, title, description, examples, locked = tru
                 ))}
               </div>
 
-              <form className="glow-card mt-8 border border-white/12 bg-[#080a0c] p-4 sm:p-5">
+              <form className="glow-card mt-8 border border-white/12 bg-[#080a0c] p-4 sm:p-5" onSubmit={handleSubmit}>
                 <div className="flex items-center justify-between gap-4">
                   <label className="text-xs font-bold uppercase tracking-[0.18em] text-white/42" htmlFor="module-target">
                     Module input
                   </label>
                   <span className="border border-[#00e0aa]/30 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[#00e0aa]">
-                    Ready
+                    {statusText}
                   </span>
                 </div>
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                   <input
                     id="module-target"
                     className="min-h-11 flex-1 border border-white/10 bg-black px-3 font-mono text-xs text-white outline-none transition focus:border-[#00e0aa] sm:min-h-12 sm:px-4 sm:text-sm"
-                    placeholder="Enter target when provider API is connected..."
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Enter email, username, phone, Discord ID, domain, IP, or log ID..."
                     type="search"
+                    value={query}
                   />
                   <button
-                    className="min-h-11 border border-white/16 px-5 text-xs font-black uppercase tracking-[0.12em] text-white/62 transition hover:border-white hover:text-white sm:min-h-12 sm:px-6 sm:text-sm sm:tracking-[0.14em]"
-                    type="button"
+                    className="min-h-11 border border-[#00e0aa]/40 px-5 text-xs font-black uppercase tracking-[0.12em] text-[#00e0aa] transition hover:bg-[#00e0aa] hover:text-black disabled:cursor-wait disabled:opacity-60 sm:min-h-12 sm:px-6 sm:text-sm sm:tracking-[0.14em]"
+                    disabled={isLoading}
+                    type="submit"
                   >
-                    Queue search
+                    {isLoading ? "Searching" : "Search"}
                   </button>
                 </div>
+                {error ? <p className="mt-4 border border-[#ff6a4a]/40 bg-[#ff6a4a]/10 px-3 py-2 text-sm leading-6 text-[#ffb6a6]">{error}</p> : null}
               </form>
+
+              {result ? (
+                <section className="mt-8 grid gap-5 lg:grid-cols-[0.7fr_1fr]" data-reveal>
+                  <aside className="glow-card border border-[#f0b35a]/50 bg-[#1a1711] p-5">
+                    <p className="font-mono text-[11px] font-black uppercase tracking-[0.18em] text-[#f0b35a]">Result summary</p>
+                    <h2 className="mt-3 text-2xl font-semibold text-white">{result.query}</h2>
+                    <p className="mt-4 text-sm leading-7 text-white/62">{result.summary}</p>
+                    {result.note ? <p className="mt-4 text-xs leading-6 text-white/42">{result.note}</p> : null}
+                  </aside>
+
+                  <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10">
+                    {result.signals.map((signal) => (
+                      <article key={`${signal.label}-${signal.value}`} className="glow-card bg-[#050607] p-5">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/42">{signal.label}</p>
+                            <p className="mt-2 font-mono text-sm text-white/78">{signal.value}</p>
+                          </div>
+                          <span className="border border-white/12 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[#00e0aa]">
+                            {signal.confidence}
+                          </span>
+                        </div>
+                        {signal.source ? <p className="mt-3 text-xs text-white/38">Source: {signal.source}</p> : null}
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link href="/account/" className="inline-flex min-h-11 items-center justify-center border border-white/16 px-5 text-xs font-black uppercase tracking-[0.12em] text-white transition hover:border-white hover:bg-white hover:text-black sm:min-h-12 sm:px-6 sm:text-sm sm:tracking-[0.14em]">

@@ -1,8 +1,9 @@
-﻿export type SearchKind = "people" | "domains" | "handles";
+export type SearchKind = "people" | "domains" | "handles";
+export type ModuleKind = "email" | "network" | "vin" | "gta-fivem" | "tiktok-resolver" | "instagram-resolver" | "tiktok-osint" | "reverse-lookup" | "discord" | "discord-history" | "roblox-discord" | "minecraft" | "machine-viewer" | "stealerlogs" | "universal-search" | "email-intelligence" | "ip-intelligence" | "aml-screening" | "aml-entity-screening" | "phone-intelligence" | "bin-lookup";
 
 export type SearchResponse = {
   ok: boolean;
-  kind: SearchKind | "export" | "health";
+  kind: SearchKind | ModuleKind | "export" | "health";
   query: string;
   generatedAt: string;
   summary: string;
@@ -36,6 +37,30 @@ export async function runToolSearch(kind: SearchKind, query: string) {
   }
 
   const response = await fetch(`${getApiBaseUrl()}/api/${kind}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query: trimmed }),
+  });
+
+  const data = (await response.json().catch(() => null)) as SearchResponse | { error?: string } | null;
+
+  if (!response.ok || !data || !("ok" in data)) {
+    throw new Error(data && "error" in data && data.error ? data.error : "Search failed.");
+  }
+
+  return data;
+}
+
+export async function runModuleSearch(module: ModuleKind, query: string) {
+  const trimmed = query.trim();
+
+  if (!trimmed) {
+    throw new Error("Enter a target first.");
+  }
+
+  const response = await fetch(`${getApiBaseUrl()}/api/modules/${module}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
