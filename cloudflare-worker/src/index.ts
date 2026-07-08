@@ -303,6 +303,26 @@ function summarizeDeepIntelData(data: unknown) {
   return "Returned data";
 }
 
+function humanizeDeepIntelKey(key: string) {
+  return key
+    .replace(/[_-]+/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function deepIntelFieldSignals(data: unknown, source: string): Signal[] {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return [];
+
+  return Object.entries(data as Record<string, unknown>)
+    .filter(([, value]) => value !== null && value !== undefined && value !== "")
+    .slice(0, 12)
+    .map(([key, value]) => ({
+      label: humanizeDeepIntelKey(key),
+      value: summarizeDeepIntelData(value),
+      confidence: "high" as Confidence,
+      source,
+    }));
+}
 function deepIntelObjectSummary(label: string, value: unknown): Signal | null {
   if (!value || typeof value !== "object") return null;
   const keys = Object.keys(value as Record<string, unknown>).slice(0, 8);
@@ -335,12 +355,14 @@ function deepIntelSignals(data: DeepIntelEnvelope, endpoint: string): Signal[] {
   });
 
   for (const hit of hits.slice(0, 6)) {
+    const source = hit.module || hit.module_key || "DeepIntel";
     signals.push({
-      label: hit.module || hit.module_key || "DeepIntel source",
+      label: source,
       value: summarizeDeepIntelData(hit.data),
       confidence: hit.status === "SUCCESS" ? "high" : "medium",
       source: "DeepIntel",
     });
+    signals.push(...deepIntelFieldSignals(hit.data, source));
   }
 
   if (typeof data.meta?.credits_remaining === "number") {

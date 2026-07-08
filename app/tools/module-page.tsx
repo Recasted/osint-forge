@@ -25,6 +25,43 @@ function moduleKindFromPath(pathname: string | null): ModuleKind {
   const segment = pathname?.split("/").filter(Boolean).at(-1) || "universal-search";
   return segment as ModuleKind;
 }
+function normalizeSlotText(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function slotAliases(label: string) {
+  const normalized = normalizeSlotText(label);
+  const aliases: Record<string, string[]> = {
+    carrier: ["carrier", "phone carrier", "network carrier"],
+    "line type": ["line type", "phone type", "number type", "type"],
+    "linked accounts": ["linked accounts", "accounts", "social accounts", "profiles", "footprint"],
+    asn: ["asn", "autonomous system"],
+    geolocation: ["geolocation", "location", "geo", "country", "city"],
+    "proxy risk": ["proxy risk", "proxy", "vpn", "tor", "risk"],
+    "discord id": ["discord id", "id", "snowflake"],
+    "server history": ["server history", "servers", "guilds"],
+    "breach hints": ["breach hints", "breach exposure", "breaches"],
+    "domain pivot": ["domain pivot", "domain", "mail domain"],
+    "account footprint": ["account footprint", "footprint", "profiles", "accounts"],
+    "credential exposure": ["credential exposure", "credentials", "passwords"],
+    "cookie traces": ["cookie traces", "cookies", "sessions"],
+    "archive metadata": ["archive metadata", "metadata", "log id", "archive"],
+  };
+
+  return [normalized, ...(aliases[normalized] || [])];
+}
+
+function resultForExample(result: SearchResponse | null, example: string) {
+  if (!result) return null;
+  const aliases = slotAliases(example);
+
+  return result.signals.find((signal) => {
+    const label = normalizeSlotText(signal.label);
+    const source = normalizeSlotText(signal.source || "");
+    return aliases.some((alias) => label.includes(alias) || alias.includes(label) || source.includes(alias));
+  }) || null;
+}
+
 
 export function ModulePage({ eyebrow, title, description, examples, locked = true, requiredPlan = "core" }: ModulePageProps) {
   const pathname = usePathname();
@@ -107,11 +144,22 @@ export function ModulePage({ eyebrow, title, description, examples, locked = tru
           ) : hasModuleAccess ? (
             <>
               <div className="mt-8 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3" data-reveal>
-                {examples.map((example) => (
-                  <article key={example} className="glow-card bg-[#050607] p-5">
-                    <p className="font-mono text-sm text-white/54">{example}</p>
-                  </article>
-                ))}
+                {examples.map((example) => {
+                  const slotResult = resultForExample(result, example);
+                  return (
+                    <article key={example} className={`glow-card bg-[#050607] p-5 ${slotResult ? "border border-[#00e0aa]/35" : ""}`}>
+                      <p className="font-mono text-sm text-white/54">{example}</p>
+                      {slotResult ? (
+                        <>
+                          <p className="mt-3 break-words font-mono text-sm leading-6 text-white">{slotResult.value}</p>
+                          <p className="mt-3 text-[11px] uppercase tracking-[0.14em] text-[#00e0aa]">{slotResult.confidence}</p>
+                        </>
+                      ) : result ? (
+                        <p className="mt-3 font-mono text-xs text-white/32">No direct match returned</p>
+                      ) : null}
+                    </article>
+                  );
+                })}
               </div>
 
               <form className="glow-card mt-8 border border-white/12 bg-[#080a0c] p-4 sm:p-5" onSubmit={handleSubmit}>
