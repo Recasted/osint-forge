@@ -31,21 +31,30 @@ function formatSeconds(ms: number) {
   return `${Math.max(0, Math.ceil(ms / 1000))}s`;
 }
 
+function isInternalProviderLine(label: string, value: string, source?: string) {
+  const text = `${label} ${value} ${source || ""}`.toLowerCase();
+  return text.includes("oversight index") || text.includes("deepintel oversight") || text.includes("deep intel oversight");
+}
+
 function terminalLines(result: SearchResponse | null) {
   if (!result) return [];
 
-  return [
-    { label: "target", value: result.query, tone: "warm" },
-    { label: "summary", value: result.summary, tone: "plain" },
-    ...result.signals.map((signal) => ({
+  const signals = result.signals
+    .filter((signal) => !isInternalProviderLine(signal.label, signal.value, signal.source))
+    .map((signal) => ({
       label: signal.label,
-      value: signal.source ? `${signal.value}  :: ${signal.source}` : signal.value,
+      value: signal.value,
+      meta: signal.source ? `${signal.confidence} / ${signal.source}` : signal.confidence,
       tone: signal.confidence === "high" ? "good" : signal.confidence === "medium" ? "warm" : "muted",
-    })),
-    ...(result.note ? [{ label: "note", value: result.note, tone: "muted" }] : []),
+    }));
+
+  return [
+    { label: "target", value: result.query, meta: "input", tone: "warm" },
+    { label: "summary", value: result.summary, meta: "system", tone: "plain" },
+    ...signals,
+    ...(result.note ? [{ label: "note", value: result.note, meta: "hint", tone: "muted" }] : []),
   ];
 }
-
 export function ModulePage({ eyebrow, title, description, locked = true, requiredPlan = "core" }: ModulePageProps) {
   const pathname = usePathname();
   const moduleKind = moduleKindFromPath(pathname);
@@ -217,10 +226,12 @@ export function ModulePage({ eyebrow, title, description, locked = true, require
                     </>
                   ) : null}
                   {lines.slice(0, visibleLines).map((line, index) => (
-                    <p className={`module-terminal-line module-terminal-line-${line.tone}`} key={`${line.label}-${line.value}-${index}`}>
-                      <span className="text-[#f0b35a]">{String(index + 1).padStart(2, "0")}</span> {line.label}
-                      <span className="block break-words pl-7 text-white/78 sm:inline sm:pl-2">{line.value}</span>
-                    </p>
+                    <div className={`module-terminal-line module-terminal-line-${line.tone}`} key={`${line.label}-${line.value}-${index}`}>
+                      <span className="module-terminal-index">{String(index + 1).padStart(2, "0")}</span>
+                      <span className="module-terminal-label">{line.label}</span>
+                      <span className="module-terminal-value">{line.value}</span>
+                      <span className="module-terminal-meta">{line.meta}</span>
+                    </div>
                   ))}
                 </div>
               </section>
