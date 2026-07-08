@@ -1547,3 +1547,41 @@ h2 .subscription-rank.tier-admin {
     0 0 10px rgba(255, 38, 56, 0.95),
     0 0 18px rgba(122, 9, 15, 0.92) !important;
 }
+.module-result-terminal {
+  background:
+    linear-gradient(180deg, rgba(0, 224, 170, 0.045), transparent 34%),
+    rgba(0, 0, 0, 0.84);
+}
+
+.module-result-progress {
+  box-shadow: 0 0 18px rgba(0, 224, 170, 0.55);
+}
+
+.module-terminal-line {
+  animation: module-line-in 260ms ease-out both;
+}
+
+.module-terminal-line-good {
+  color: rgba(0, 224, 170, 0.92);
+}
+
+.module-terminal-line-warm {
+  color: rgba(240, 179, 90, 0.92);
+}
+
+.module-terminal-line-muted,
+.module-terminal-line-plain {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+@keyframes module-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

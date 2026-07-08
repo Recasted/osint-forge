@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 
 import { InteractiveEffects } from "../interactive-effects";
@@ -20,60 +20,48 @@ type ModulePageProps = {
 };
 
 const planRank: Record<PlanId, number> = { free: 0, core: 1, professional: 2, enterprise: 3 };
+const estimatedSearchMs = 12000;
 
 function moduleKindFromPath(pathname: string | null): ModuleKind {
   const segment = pathname?.split("/").filter(Boolean).at(-1) || "universal-search";
   return segment as ModuleKind;
 }
-function normalizeSlotText(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+function formatSeconds(ms: number) {
+  return `${Math.max(0, Math.ceil(ms / 1000))}s`;
 }
 
-function slotAliases(label: string) {
-  const normalized = normalizeSlotText(label);
-  const aliases: Record<string, string[]> = {
-    carrier: ["carrier", "phone carrier", "network carrier"],
-    "line type": ["line type", "phone type", "number type", "type"],
-    "linked accounts": ["linked accounts", "accounts", "social accounts", "profiles", "footprint"],
-    asn: ["asn", "autonomous system"],
-    geolocation: ["geolocation", "location", "geo", "country", "city"],
-    "proxy risk": ["proxy risk", "proxy", "vpn", "tor", "risk"],
-    "discord id": ["discord id", "id", "snowflake"],
-    "server history": ["server history", "servers", "guilds"],
-    "breach hints": ["breach hints", "breach exposure", "breaches"],
-    "domain pivot": ["domain pivot", "domain", "mail domain"],
-    "account footprint": ["account footprint", "footprint", "profiles", "accounts"],
-    "credential exposure": ["credential exposure", "credentials", "passwords"],
-    "cookie traces": ["cookie traces", "cookies", "sessions"],
-    "archive metadata": ["archive metadata", "metadata", "log id", "archive"],
-  };
+function terminalLines(result: SearchResponse | null) {
+  if (!result) return [];
 
-  return [normalized, ...(aliases[normalized] || [])];
+  return [
+    { label: "target", value: result.query, tone: "warm" },
+    { label: "summary", value: result.summary, tone: "plain" },
+    ...result.signals.map((signal) => ({
+      label: signal.label,
+      value: signal.source ? `${signal.value}  :: ${signal.source}` : signal.value,
+      tone: signal.confidence === "high" ? "good" : signal.confidence === "medium" ? "warm" : "muted",
+    })),
+    ...(result.note ? [{ label: "note", value: result.note, tone: "muted" }] : []),
+  ];
 }
 
-function resultForExample(result: SearchResponse | null, example: string) {
-  if (!result) return null;
-  const aliases = slotAliases(example);
-
-  return result.signals.find((signal) => {
-    const label = normalizeSlotText(signal.label);
-    const source = normalizeSlotText(signal.source || "");
-    return aliases.some((alias) => label.includes(alias) || alias.includes(label) || source.includes(alias));
-  }) || null;
-}
-
-
-export function ModulePage({ eyebrow, title, description, examples, locked = true, requiredPlan = "core" }: ModulePageProps) {
+export function ModulePage({ eyebrow, title, description, locked = true, requiredPlan = "core" }: ModulePageProps) {
   const pathname = usePathname();
   const moduleKind = moduleKindFromPath(pathname);
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<SearchResponse | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [remainingMs, setRemainingMs] = useState(0);
+  const [searchStartedAt, setSearchStartedAt] = useState<number | null>(null);
+  const [visibleLines, setVisibleLines] = useState(0);
   const [account, setAccount] = useState<AccountState | null>(() => getAccount());
   const requiresPaidPlan = locked;
   const hasModuleAccess = Boolean(account && (!requiresPaidPlan || planRank[account.plan] >= planRank[requiredPlan]));
   const requiredPlanLabel = planLabel(requiredPlan);
+  const lines = useMemo(() => terminalLines(result), [result]);
 
   const statusText = useMemo(() => {
     if (isLoading) return "Running";
@@ -82,9 +70,39 @@ export function ModulePage({ eyebrow, title, description, examples, locked = tru
     return "Ready";
   }, [error, isLoading, result]);
 
+  useEffect(() => {
+    if (!isLoading || !searchStartedAt) return;
+
+    const timer = window.setInterval(() => {
+      const elapsed = Date.now() - searchStartedAt;
+      setProgress(Math.min(94, Math.round((elapsed / estimatedSearchMs) * 100)));
+      setRemainingMs(Math.max(0, estimatedSearchMs - elapsed));
+    }, 160);
+
+    return () => window.clearInterval(timer);
+  }, [isLoading, searchStartedAt]);
+
+  useEffect(() => {
+    if (!lines.length) return;
+
+    const timer = window.setInterval(() => {
+      setVisibleLines((current) => {
+        if (current >= lines.length) {
+          window.clearInterval(timer);
+          return current;
+        }
+        return current + 1;
+      });
+    }, 115);
+
+    return () => window.clearInterval(timer);
+  }, [lines]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+    setResult(null);
+    setVisibleLines(0);
 
     const cleanQuery = query.trim();
     if (!cleanQuery) {
@@ -100,12 +118,19 @@ export function ModulePage({ eyebrow, title, description, examples, locked = tru
     }
 
     if (quota.account) setAccount(quota.account);
+    setProgress(3);
+    setRemainingMs(estimatedSearchMs);
+    setSearchStartedAt(Date.now());
     setIsLoading(true);
 
     try {
       setResult(await runModuleSearch(moduleKind, cleanQuery));
+      setProgress(100);
+      setRemainingMs(0);
     } catch (searchError) {
       setResult(null);
+      setProgress(0);
+      setRemainingMs(0);
       setError(searchError instanceof Error ? searchError.message : "Search failed.");
     } finally {
       setIsLoading(false);
@@ -143,29 +168,10 @@ export function ModulePage({ eyebrow, title, description, examples, locked = tru
             <AccountRequired moduleName={eyebrow} onCreate={setAccount} />
           ) : hasModuleAccess ? (
             <>
-              <div className="mt-8 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3" data-reveal>
-                {examples.map((example) => {
-                  const slotResult = resultForExample(result, example);
-                  return (
-                    <article key={example} className={`glow-card bg-[#050607] p-5 ${slotResult ? "border border-[#00e0aa]/35" : ""}`}>
-                      <p className="font-mono text-sm text-white/54">{example}</p>
-                      {slotResult ? (
-                        <>
-                          <p className="mt-3 break-words font-mono text-sm leading-6 text-white">{slotResult.value}</p>
-                          <p className="mt-3 text-[11px] uppercase tracking-[0.14em] text-[#00e0aa]">{slotResult.confidence}</p>
-                        </>
-                      ) : result ? (
-                        <p className="mt-3 font-mono text-xs text-white/32">No direct match returned</p>
-                      ) : null}
-                    </article>
-                  );
-                })}
-              </div>
-
-              <form className="glow-card mt-8 border border-white/12 bg-[#080a0c] p-4 sm:p-5" onSubmit={handleSubmit}>
+              <form className="glow-card mt-8 border border-[#00e0aa]/65 bg-[#06100f] p-4 shadow-2xl shadow-[#00e0aa]/10 sm:p-5" onSubmit={handleSubmit}>
                 <div className="flex items-center justify-between gap-4">
                   <label className="text-xs font-bold uppercase tracking-[0.18em] text-white/42" htmlFor="module-target">
-                    Module input
+                    Search input
                   </label>
                   <span className="border border-[#00e0aa]/30 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[#00e0aa]">
                     {statusText}
@@ -191,33 +197,33 @@ export function ModulePage({ eyebrow, title, description, examples, locked = tru
                 {error ? <p className="mt-4 border border-[#ff6a4a]/40 bg-[#ff6a4a]/10 px-3 py-2 text-sm leading-6 text-[#ffb6a6]">{error}</p> : null}
               </form>
 
-              {result ? (
-                <section className="mt-8 grid gap-5 lg:grid-cols-[0.7fr_1fr]" data-reveal>
-                  <aside className="glow-card border border-[#f0b35a]/50 bg-[#1a1711] p-5">
-                    <p className="font-mono text-[11px] font-black uppercase tracking-[0.18em] text-[#f0b35a]">Result summary</p>
-                    <h2 className="mt-3 text-2xl font-semibold text-white">{result.query}</h2>
-                    <p className="mt-4 text-sm leading-7 text-white/62">{result.summary}</p>
-                    {result.note ? <p className="mt-4 text-xs leading-6 text-white/42">{result.note}</p> : null}
-                  </aside>
-
-                  <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10">
-                    {result.signals.map((signal) => (
-                      <article key={`${signal.label}-${signal.value}`} className="glow-card bg-[#050607] p-5">
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/42">{signal.label}</p>
-                            <p className="mt-2 font-mono text-sm text-white/78">{signal.value}</p>
-                          </div>
-                          <span className="border border-white/12 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[#00e0aa]">
-                            {signal.confidence}
-                          </span>
-                        </div>
-                        {signal.source ? <p className="mt-3 text-xs text-white/38">Source: {signal.source}</p> : null}
-                      </article>
-                    ))}
-                  </div>
-                </section>
-              ) : null}
+              <section className="module-result-terminal mt-8 overflow-hidden border border-white/10 bg-black/80 font-mono shadow-2xl shadow-black/40" data-reveal>
+                <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-[11px] uppercase tracking-[0.16em] text-white/44">
+                  <span>{moduleKind} :: DeepIntel stream</span>
+                  <span className="text-[#00e0aa]">{isLoading ? `ETA ${formatSeconds(remainingMs)}` : result ? "Complete" : "Idle"}</span>
+                </header>
+                <div className="h-1 bg-white/8">
+                  <div className="module-result-progress h-full bg-[#00e0aa] transition-[width] duration-200 ease-linear" style={{ width: `${progress}%` }} />
+                </div>
+                <div className="min-h-[380px] space-y-2 p-4 text-sm leading-6 sm:p-5">
+                  {!isLoading && !result ? (
+                    <p className="text-white/34">Waiting for a target. Results will stream here line by line.</p>
+                  ) : null}
+                  {isLoading ? (
+                    <>
+                      <p className="module-terminal-line text-white/64"><span className="text-[#f0b35a]">00</span> opening provider route <span className="float-right text-[#00e0aa]">running</span></p>
+                      <p className="module-terminal-line text-white/64"><span className="text-[#f0b35a]">01</span> querying DeepIntel endpoint <span className="float-right text-[#00e0aa]">{progress}%</span></p>
+                      <p className="module-terminal-line text-white/38"><span className="text-[#f0b35a]">02</span> parsing records as soon as they return<span className="terminal-cursor" /></p>
+                    </>
+                  ) : null}
+                  {lines.slice(0, visibleLines).map((line, index) => (
+                    <p className={`module-terminal-line module-terminal-line-${line.tone}`} key={`${line.label}-${line.value}-${index}`}>
+                      <span className="text-[#f0b35a]">{String(index + 1).padStart(2, "0")}</span> {line.label}
+                      <span className="block break-words pl-7 text-white/78 sm:inline sm:pl-2">{line.value}</span>
+                    </p>
+                  ))}
+                </div>
+              </section>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link href="/account/" className="inline-flex min-h-11 items-center justify-center border border-white/16 px-5 text-xs font-black uppercase tracking-[0.12em] text-white transition hover:border-white hover:bg-white hover:text-black sm:min-h-12 sm:px-6 sm:text-sm sm:tracking-[0.14em]">
