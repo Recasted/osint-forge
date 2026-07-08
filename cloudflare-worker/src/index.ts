@@ -291,37 +291,60 @@ type DeepIntelEnvelope = {
   code?: string;
 };
 
-function summarizeDeepIntelData(data: unknown) {
-  if (!data) return "Returned data";
-  if (typeof data === "string") return data.slice(0, 180);
+function summarizeDeepIntelData(data: unknown): string {
+  if (data === null || data === undefined || data === "") return "No value returned";
+  if (typeof data === "string") return data.slice(0, 260);
   if (typeof data === "number" || typeof data === "boolean") return String(data);
-  if (Array.isArray(data)) return `${data.length} record${data.length === 1 ? "" : "s"}`;
+  if (Array.isArray(data)) {
+    const primitives = data.filter((item) => item === null || ["string", "number", "boolean"].includes(typeof item)).slice(0, 8);
+    if (primitives.length) return primitives.map((item) => String(item)).join(" | ").slice(0, 260);
+    return `${data.length} record${data.length === 1 ? "" : "s"}`;
+  }
   if (typeof data === "object") {
-    const keys = Object.keys(data as Record<string, unknown>).slice(0, 6);
-    return keys.length ? `Fields: ${keys.join(", ")}` : "Structured data returned";
+    const entries = Object.entries(data as Record<string, unknown>).slice(0, 5);
+    const preview: string = entries.map(([key, value]) => `${key}: ${typeof value === "object" ? summarizeDeepIntelData(value) : String(value)}`).join(" | ");
+    return preview.slice(0, 260) || "Structured data returned";
   }
   return "Returned data";
 }
 
-function humanizeDeepIntelKey(key: string) {
+function humanizeDeepIntelKey(key: string): string {
   return key
-    .replace(/[_-]+/g, " ")
+    .replace(/\[(\d+)\]/g, " #$1")
+    .replace(/[._-]+/g, " ")
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function deepIntelFieldSignals(data: unknown, source: string): Signal[] {
-  if (!data || typeof data !== "object" || Array.isArray(data)) return [];
+function isPrimitiveDeepIntelValue(value: unknown): boolean {
+  return value === null || value === undefined || ["string", "number", "boolean"].includes(typeof value);
+}
 
-  return Object.entries(data as Record<string, unknown>)
-    .filter(([, value]) => value !== null && value !== undefined && value !== "")
-    .slice(0, 12)
-    .map(([key, value]) => ({
-      label: humanizeDeepIntelKey(key),
-      value: summarizeDeepIntelData(value),
-      confidence: "high" as Confidence,
-      source,
-    }));
+function flattenDeepIntelValue(value: unknown, path: string, source: string, signals: Signal[], depth = 0) {
+  if (signals.length >= 90 || depth > 5 || value === null || value === undefined || value === "") return;
+
+  if (isPrimitiveDeepIntelValue(value)) {
+    signals.push({ label: humanizeDeepIntelKey(path), value: summarizeDeepIntelData(value), confidence: "high", source });
+    return;
+  }
+
+  if (Array.isArray(value)) {
+    signals.push({ label: humanizeDeepIntelKey(path), value: `${value.length} record${value.length === 1 ? "" : "s"}`, confidence: value.length ? "high" : "medium", source });
+    value.slice(0, 12).forEach((item, index) => flattenDeepIntelValue(item, `${path}[${index + 1}]`, source, signals, depth + 1));
+    return;
+  }
+
+  const entries = Object.entries(value as Record<string, unknown>).filter(([, entryValue]) => entryValue !== null && entryValue !== undefined && entryValue !== "");
+  for (const [key, entryValue] of entries.slice(0, 24)) {
+    flattenDeepIntelValue(entryValue, path ? `${path}.${key}` : key, source, signals, depth + 1);
+    if (signals.length >= 90) break;
+  }
+}
+
+function deepIntelFieldSignals(data: unknown, source: string): Signal[] {
+  const signals: Signal[] = [];
+  flattenDeepIntelValue(data, "data", source, signals);
+  return signals;
 }
 function deepIntelObjectSummary(label: string, value: unknown): Signal | null {
   if (!value || typeof value !== "object") return null;
@@ -354,7 +377,7 @@ function deepIntelSignals(data: DeepIntelEnvelope, endpoint: string): Signal[] {
     source: "DeepIntel",
   });
 
-  for (const hit of hits.slice(0, 6)) {
+  for (const hit of hits.slice(0, 20)) {
     const source = hit.module || hit.module_key || "DeepIntel";
     signals.push({
       label: source,
@@ -532,6 +555,56 @@ async function handleSearch(query: string, env: Env): Promise<SearchResult> {
   };
 }
 
+function isDiscordSnowflake(query: string) {
+  return /^\d{17,20}$/.test(query.trim());
+}
+
+function isPhoneLike(query: string) {
+  return /^\+?[0-9\s().-]{10,18}$/.test(query.trim());
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function universalSweepEndpoints(query: string): DeepIntelEndpoint[] {
+  if (isEmail(query)) return ["email", "footprint", "breaches", "stealerlogs"];
+  const cleanDomain = query.replace(/^https?:\/\//, "").split("/")[0].trim().toLowerCase();
+  if (isDomain(cleanDomain)) return ["domain", "breaches", "stealerlogs"];
+  if (isDiscordSnowflake(query)) return ["discord-id", "breaches", "stealerlogs"];
+  if (isPhoneLike(query)) return ["phone", "breaches", "footprint"];
+  return ["footprint", "breaches", "stealerlogs"];
+}
+
+async function deepIntelSweep(query: string, env: Env): Promise<{ signals: Signal[]; sources: SearchResult["sources"]; endpoints: string[]; successCount: number }> {
+  const signals: Signal[] = [];
+  const sources: SearchResult["sources"] = [{ name: "DeepIntel", url: "https://deepintel.cc/docs" }];
+  const endpoints = universalSweepEndpoints(query);
+  let successCount = 0;
+
+  if (!env.DEEPINTEL_API_KEY) {
+    return {
+      signals: [{ label: "Provider key", value: "Set DEEPINTEL_API_KEY in the Cloudflare Worker to run Universal Search.", confidence: "medium", source: "OSINT Forge API" }],
+      sources,
+      endpoints,
+      successCount,
+    };
+  }
+
+  for (const [index, endpoint] of endpoints.entries()) {
+    if (index > 0) await sleep(1050);
+    signals.push({ label: "DeepIntel sweep", value: `running ${endpoint}`, confidence: "medium", source: "OSINT Forge router" });
+    const response = await deepIntelSearch(endpoint, query, env);
+    if (response?.ok) {
+      successCount += 1;
+      signals.push(...deepIntelSignals(response, endpoint));
+    } else if (response && !response.ok) {
+      signals.push(deepIntelErrorSignal(response));
+    }
+  }
+
+  return { signals, sources, endpoints, successCount };
+}
 const moduleEndpointMap: Record<string, DeepIntelEndpoint> = {
   email: "email",
   network: "domain",
@@ -564,6 +637,20 @@ function moduleFallbackHint(module: string) {
 }
 
 async function moduleSearch(module: string, query: string, env: Env): Promise<SearchResult> {
+  if (module === "universal-search") {
+    const sweep = await deepIntelSweep(query, env);
+    return {
+      ok: true,
+      kind: module,
+      query,
+      generatedAt: new Date().toISOString(),
+      summary: sweep.successCount ? `Universal Search completed across ${sweep.endpoints.join(", ")}.` : `Universal Search ran ${sweep.endpoints.join(", ")} but no completed provider result was returned.`,
+      signals: sweep.signals,
+      sources: sweep.sources,
+      note: env.DEEPINTEL_API_KEY ? undefined : "Set DEEPINTEL_API_KEY with `wrangler secret put DEEPINTEL_API_KEY` to enable DeepIntel-backed modules.",
+    };
+  }
+
   const endpoint = moduleEndpointMap[module];
   if (!endpoint) {
     return {
