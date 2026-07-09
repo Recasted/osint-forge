@@ -21,6 +21,9 @@ function escapeHtml(value: string) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 }
 
+type ItemRow = { label: string; value: string; confidence: string; source?: string };
+type ItemGroup = [string, ItemRow[]];
+
 function divider() {
   return "=".repeat(width);
 }
@@ -84,8 +87,63 @@ function displaySourceUrl(url?: string) {
   return /deepintel/i.test(url) ? "https://osintforge.dev" : url;
 }
 
+function rowMatches(row: ItemRow, patterns: RegExp[]) {
+  return patterns.some((pattern) => pattern.test(row.label));
+}
+
+function findRow(rows: ItemRow[], patterns: RegExp[]) {
+  return rows.find((row) => rowMatches(row, patterns));
+}
+
+function rowValue(rows: ItemRow[], patterns: RegExp[]) {
+  return cleanLine(findRow(rows, patterns)?.value || "");
+}
+
+function extractDomain(value: string) {
+  const clean = cleanLine(value).replace(/^https?:\/\//i, "https://");
+  try {
+    return new URL(clean).hostname.replace(/^www\./i, "").toLowerCase();
+  } catch {
+    const match = cleanLine(value).match(/(?:https?:\/\/)?(?:www\.)?([a-z0-9-]+(?:\.[a-z0-9-]+)+)/i);
+    return match?.[1]?.replace(/^www\./i, "").toLowerCase() || "";
+  }
+}
+
+function itemDomain(rows: ItemRow[]) {
+  return rowValue(rows, [/^domain$/i]) || extractDomain(rowValue(rows, [/url/i, /host/i, /site/i, /path/i]));
+}
+
+function itemUrl(rows: ItemRow[]) {
+  return rowValue(rows, [/url/i, /^path$/i, /login/i, /site/i]);
+}
+
+function itemPassword(rows: ItemRow[]) {
+  return rowValue(rows, [/password/i, /pass/i, /credential/i]);
+}
+
+function itemDate(rows: ItemRow[]) {
+  return rowValue(rows, [/indexed/i, /observed/i, /pwned/i, /date/i, /created/i, /updated/i]);
+}
+
+function dateRank(value: string) {
+  const match = cleanLine(value).match(/\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}:\d{2}Z?)?/);
+  if (!match) return Number.POSITIVE_INFINITY;
+  const time = Date.parse(match[0]);
+  return Number.isNaN(time) ? Number.POSITIVE_INFINITY : -time;
+}
+
+function compareItemGroups(a: ItemGroup, b: ItemGroup) {
+  const domainCompare = itemDomain(a[1]).localeCompare(itemDomain(b[1]));
+  if (domainCompare) return domainCompare;
+  const dateCompare = dateRank(itemDate(a[1])) - dateRank(itemDate(b[1]));
+  if (dateCompare) return dateCompare;
+  const urlCompare = itemUrl(a[1]).localeCompare(itemUrl(b[1]));
+  if (urlCompare) return urlCompare;
+  return Number(a[0]) - Number(b[0]);
+}
+
 function groupItemSignals(result: SearchResponse) {
-  const groups = new Map<string, Array<{ label: string; value: string; confidence: string; source?: string }>>();
+  const groups = new Map<string, ItemRow[]>();
 
   for (const signal of signalsForReport(result)) {
     const match = signal.label.match(/(?:Data\s+)?Items?\s+#?(\d+)\s+(.+)/i);
@@ -97,7 +155,118 @@ function groupItemSignals(result: SearchResponse) {
     groups.set(index, existing);
   }
 
-  return [...groups.entries()].slice(0, 25);
+  return [...groups.entries()].sort(compareItemGroups).slice(0, 25);
+}
+
+function uniqueValues(values: string[]) {
+  return [...new Set(values.map(cleanLine).filter(Boolean))];
+}
+
+function urlHierarchy(result: SearchResponse) {
+  const groups = groupItemSignals(result);
+  if (!groups.length) return "|- No item records available for hierarchy.";
+  const byDomain = new Map<string, string[]>();
+
+  for (const [, rows] of groups) {
+    const domain = itemDomain(rows) || "unknown-domain";
+    const urls = byDomain.get(domain) || [];
+    const url = itemUrl(rows) || rowValue(rows, [/^path$/i]) || "record without URL/path";
+    urls.push(url);
+    byDomain.set(domain, urls);
+  }
+
+  return [...byDomain.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([domain, urls], domainIndex, domains) => {
+    const domainBranch = domainIndex === domains.length - 1 ? "`-" : "|-";
+    const childPrefix = domainIndex === domains.length - 1 ? "   " : "|  ";
+    const children = uniqueValues(urls).sort().slice(0, 12).map((url, urlIndex, allUrls) => {
+      const branch = urlIndex === allUrls.length - 1 ? "`-" : "|-";
+      return `${childPrefix} ${branch} ${url}`;
+    });
+    return [`${domainBranch} ${domain}`, ...children].join("\n");
+  }).join("\n");
+}
+
+function credentialReuseGraph(result: SearchResponse) {
+  const groups = groupItemSignals(result);
+  const byPassword = new Map<string, string[]>();
+
+  for (const [, rows] of groups) {
+    const password = itemPassword(rows);
+    if (!password) continue;
+    const target = itemUrl(rows) || itemDomain(rows) || "unknown target";
+    const existing = byPassword.get(password) || [];
+    existing.push(target);
+    byPassword.set(password, existing);
+  }
+
+  const reused = [...byPassword.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+  if (!reused.length) return "|- No credential reuse fields returned.";
+
+  return reused.slice(0, 12).map(([password, targets], index, allPasswords) => {
+    const branch = index === allPasswords.length - 1 ? "`-" : "|-";
+    const cleanTargets = uniqueValues(targets).sort();
+    const targetLines = cleanTargets.slice(0, 8).map((target, targetIndex, allTargets) => {
+      const targetBranch = targetIndex === allTargets.length - 1 ? "`-" : "|-";
+      const prefix = index === allPasswords.length - 1 ? "   " : "|  ";
+      return `${prefix} ${targetBranch} ${target}`;
+    });
+    return [`${branch} ${password} (${cleanTargets.length} target${cleanTargets.length === 1 ? "" : "s"})`, ...targetLines].join("\n");
+  }).join("\n");
+}
+
+function timelineOverview(result: SearchResponse) {
+  const groups = groupItemSignals(result);
+  const byDate = new Map<string, string[]>();
+
+  for (const [index, rows] of groups) {
+    const date = itemDate(rows);
+    const match = date.match(/\d{4}-\d{2}-\d{2}/);
+    if (!match) continue;
+    const entries = byDate.get(match[0]) || [];
+    entries.push(`Item #${index}: ${itemUrl(rows) || itemDomain(rows) || "record"}`);
+    byDate.set(match[0], entries);
+  }
+
+  const entries = [...byDate.entries()].sort(([a], [b]) => b.localeCompare(a));
+  if (!entries.length) return "|- No timeline fields returned.";
+
+  return entries.slice(0, 10).map(([date, rows], index, allDates) => {
+    const branch = index === allDates.length - 1 ? "`-" : "|-";
+    const prefix = index === allDates.length - 1 ? "   " : "|  ";
+    return [`${branch} ${date}`, ...uniqueValues(rows).slice(0, 8).map((row, rowIndex, allRows) => `${prefix} ${rowIndex === allRows.length - 1 ? "`-" : "|-"} ${row}`)].join("\n");
+  }).join("\n");
+}
+
+function intelligenceSummary(result: SearchResponse) {
+  const groups = groupItemSignals(result);
+  const domains = uniqueValues(groups.map(([, rows]) => itemDomain(rows)));
+  const urls = uniqueValues(groups.map(([, rows]) => itemUrl(rows)));
+  const passwords = uniqueValues(groups.map(([, rows]) => itemPassword(rows)));
+  const dated = groups.filter(([, rows]) => itemDate(rows)).length;
+  return [
+    tree("Sorted Records", String(groups.length)),
+    tree("Related Domains", String(domains.length)),
+    tree("Observed URLs", String(urls.length)),
+    tree("Credential Variants", String(passwords.length)),
+    tree("Timeline Events", String(dated)),
+  ].join("\n");
+}
+
+function sortedAnalysisSections(result: SearchResponse) {
+  if (!groupItemSignals(result).length) return "";
+  return [
+    section("AUTO-SORTED URL HIERARCHY"),
+    urlHierarchy(result),
+    "",
+    section("AUTO-SORTED CREDENTIAL REUSE"),
+    credentialReuseGraph(result),
+    "",
+    section("AUTO-SORTED TIMELINE"),
+    timelineOverview(result),
+    "",
+    section("INTELLIGENCE SUMMARY"),
+    intelligenceSummary(result),
+  ].join("\n");
 }
 
 function moduleOverview(result: SearchResponse, toolName: string) {
@@ -134,7 +303,7 @@ function sourceOverview(result: SearchResponse) {
   }).join("\n");
 }
 
-function itemBox(index: string, rows: Array<{ label: string; value: string; confidence: string; source?: string }>) {
+function itemBox(index: string, rows: ItemRow[]) {
   const top = `+- ITEM #${index} ${"-".repeat(Math.max(0, width - 12))}+`;
   const bottom = `+${"-".repeat(innerWidth)}+`;
   const preferred = ["Url", "Domain", "Path", "Username", "Email", "Password", "Log", "Id", "Canonical Credential Id", "Indexed At"];
@@ -187,6 +356,8 @@ export function makeSearchReport(result: SearchResponse, toolName: string) {
     section("MODULE OVERVIEW"),
     moduleOverview(result, toolName),
     "",
+    sortedAnalysisSections(result),
+    sortedAnalysisSections(result) ? "" : "",
     divider(),
     "SIGNAL INDEX",
     divider(),
@@ -228,6 +399,8 @@ export function makeCaseFileReport(result: SearchResponse, toolName: string) {
     section("EVIDENCE SUMMARY"),
     signals.length ? signals.map((signal, index) => `${String(index + 1).padStart(2, "0")}. ${cleanLine(signal.label).padEnd(28, ".")} ${cleanLine(signal.value)} (${signal.confidence}${signal.source ? ` / ${cleanLine(signal.source)}` : ""})`).join("\n") : "No signals returned.",
     "",
+    sortedAnalysisSections(result),
+    sortedAnalysisSections(result) ? "" : "",
     section("SOURCES"),
     sourceOverview(result),
     "",
@@ -285,6 +458,19 @@ export function makeAsciiDocumentReport(result: SearchResponse, toolName: string
     "+--> [SUMMARY]",
     `|    +-- ${cleanLine(result.summary)}`,
     result.note ? `|    +-- ${cleanLine(result.note)}` : "",
+    "",
+    groups.length ? panel("Auto Sorted URL Hierarchy") : "",
+    groups.length ? urlHierarchy(result) : "",
+    groups.length ? "" : "",
+    groups.length ? panel("Auto Sorted Credential Reuse") : "",
+    groups.length ? credentialReuseGraph(result) : "",
+    groups.length ? "" : "",
+    groups.length ? panel("Auto Sorted Timeline") : "",
+    groups.length ? timelineOverview(result) : "",
+    groups.length ? "" : "",
+    groups.length ? panel("Intelligence Summary") : "",
+    groups.length ? intelligenceSummary(result) : "",
+    groups.length ? "" : "",
     "|",
     "+--> [SIGNALS]",
     signalRows.length ? signalRows.join("\n") : "|   +-- No signals returned",
