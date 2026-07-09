@@ -19,9 +19,24 @@ export type CartItem = {
   kind: "subscription" | "credits";
 };
 
+export type RecentSearch = {
+  tool: string;
+  query: string;
+  summary: string;
+  createdAt: string;
+};
+
+export type CouponReward = {
+  code: string;
+  creditsAward: number;
+  subscriptionPlan?: PlanId | null;
+  subscriptionDuration?: string | null;
+};
+
 const accountKey = "osint-forge-account";
 const accountsKey = "osint-forge-accounts";
 const cartKey = "osint-forge-cart";
+const recentSearchesKey = "osint-forge-recent-searches";
 const adminEmailHash = "d55b37c";
 const adminCredits = 999999;
 
@@ -67,6 +82,10 @@ export function isAdminEmail(email: string) {
 
 export function isAdminAccount(account: Pick<AccountState, "email">) {
   return isAdminEmail(account.email);
+}
+
+export function accountAuthHash(account: Pick<AccountState, "email">) {
+  return stableEmailHash(account.email);
 }
 
 export function planLabel(plan: PlanId) {
@@ -179,6 +198,29 @@ export function createFreeAccount(email: string, username?: string) {
   });
 }
 
+export function getRecentSearches() {
+  if (!canUseStorage()) return [] as RecentSearch[];
+
+  try {
+    return JSON.parse(window.localStorage.getItem(recentSearchesKey) || "[]") as RecentSearch[];
+  } catch {
+    return [] as RecentSearch[];
+  }
+}
+
+export function recordRecentSearch(search: Pick<RecentSearch, "tool" | "query" | "summary">) {
+  if (!canUseStorage()) return [] as RecentSearch[];
+
+  const recent = getRecentSearches();
+  const nextSearches = [
+    { ...search, createdAt: new Date().toISOString() },
+    ...recent.filter((item) => !(item.tool === search.tool && item.query === search.query)),
+  ].slice(0, 10);
+
+  window.localStorage.setItem(recentSearchesKey, JSON.stringify(nextSearches));
+  window.dispatchEvent(new Event("osint-forge-recent-searches"));
+  return nextSearches;
+}
 export function signOut() {
   if (!canUseStorage()) return;
   window.localStorage.removeItem(accountKey);
@@ -206,6 +248,25 @@ export function consumeSearch(): { ok: true; account: AccountState } | { ok: fal
   return { ok: true, account: updated };
 }
 
+export function applyCouponReward(email: string, username: string | undefined, reward: CouponReward) {
+  const cleanEmail = normalizeEmail(email);
+  const existingAccount = getAccount() || findRememberedAccount(cleanEmail);
+  const isAdmin = isAdminEmail(cleanEmail);
+  const nextPlan = isAdmin ? "enterprise" : reward.subscriptionPlan || existingAccount?.plan || "free";
+  const planCredits = nextPlan === "free" ? 5 : catalog[nextPlan].credits;
+  const existingCredits = existingAccount?.credits || planCredits;
+  const nextCredits = isAdmin ? adminCredits : Math.max(existingCredits, planCredits) + Math.max(0, reward.creditsAward || 0);
+
+  return saveAccount({
+    username: (username || existingAccount?.username || usernameFromEmail(cleanEmail)).trim().slice(0, 18),
+    email: cleanEmail,
+    plan: nextPlan,
+    searchesUsed: Math.min(existingAccount?.searchesUsed || 0, nextCredits),
+    searchesLimit: nextCredits,
+    credits: nextCredits,
+    month: currentMonth(),
+  });
+}
 export function getCart() {
   if (!canUseStorage()) return [] as CartItem[];
 

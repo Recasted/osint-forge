@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 
 import { InteractiveEffects } from "../interactive-effects";
 import { AccountRequired } from "./account-required";
-import { AccountState, consumeSearch, getAccount, getRemainingSearches, PlanId, planLabel } from "../lib/account-store";
+import { AccountState, consumeSearch, getAccount, getRemainingSearches, PlanId, planLabel, recordRecentSearch } from "../lib/account-store";
 import { ModuleKind, runModuleSearch, SearchResponse } from "../lib/api-client";
 import { ToolSidebar } from "../tool-sidebar";
 
@@ -133,7 +133,9 @@ export function ModulePage({ eyebrow, title, description, locked = true, require
     setIsLoading(true);
 
     try {
-      setResult(await runModuleSearch(moduleKind, cleanQuery));
+      const searchResult = await runModuleSearch(moduleKind, cleanQuery);
+      setResult(searchResult);
+      recordRecentSearch({ tool: eyebrow, query: searchResult.query, summary: searchResult.summary });
       setProgress(100);
       setRemainingMs(0);
     } catch (searchError) {

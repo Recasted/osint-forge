@@ -4,7 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 import { InteractiveEffects } from "../interactive-effects";
-import { AccountState, accountRankLabel, accountTierClass, createFreeAccount, getAccount, getRemainingSearches, signOut } from "../lib/account-store";
+import { AccountState, RecentSearch, accountRankLabel, accountTierClass, createFreeAccount, getAccount, getRecentSearches, getRemainingSearches, isAdminAccount, signOut } from "../lib/account-store";
 import { ThemeControl } from "../theme-control";
 import { ToolSidebar } from "../tool-sidebar";
 
@@ -31,10 +31,18 @@ function RankBadge({ account }: { account: AccountState }) {
   );
 }
 
+function formatRecentDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "recent";
+  return date.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
 export default function AccountPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [account, setAccount] = useState<AccountState | null>(() => getAccount());
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>(() => getRecentSearches());
+  const isAdmin = account ? isAdminAccount(account) : false;
 
   function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,6 +50,7 @@ export default function AccountPage() {
     const cleanUsername = username.trim();
     if (!cleanEmail || !cleanUsername) return;
     setAccount(createFreeAccount(cleanEmail, cleanUsername));
+    setRecentSearches(getRecentSearches());
     setEmail("");
     setUsername("");
   }
@@ -103,11 +112,21 @@ export default function AccountPage() {
 
               <section className="lg:col-span-2">
                 <ThemeControl />
-                <div className="mt-5 flex items-center justify-between gap-4">
+                <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
                   <h2 className="text-2xl font-semibold text-white">Modules</h2>
-                  <button className="border border-white/16 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/62 transition hover:border-white hover:text-white" onClick={handleSignOut} type="button">
-                    Sign out
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    <Link href="/account/redeem/" className="border border-[#f0b35a]/40 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#f0b35a] transition hover:bg-[#f0b35a] hover:text-black">
+                      Redeem coupon
+                    </Link>
+                    {isAdmin ? (
+                      <Link href="/account/admin/coupons/" className="border border-[#7a090f]/70 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#ff6b76] transition hover:bg-[#7a090f] hover:text-white">
+                        Admin coupons
+                      </Link>
+                    ) : null}
+                    <button className="border border-white/16 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/62 transition hover:border-white hover:text-white" onClick={handleSignOut} type="button">
+                      Sign out
+                    </button>
+                  </div>
                 </div>
                 <div className="mt-4 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3">
                   {dashboardModules.map((module) => (
@@ -116,6 +135,27 @@ export default function AccountPage() {
                       <p className="mt-3 text-sm leading-6 text-white/52">{module.meta}</p>
                     </Link>
                   ))}
+                </div>
+              </section>
+
+              <section className="lg:col-span-2" data-reveal>
+                <div className="flex items-center justify-between gap-4">
+                  <h2 className="text-2xl font-semibold text-white">Recent searches</h2>
+                  <button className="border border-white/16 px-3 py-2 text-[11px] font-black uppercase tracking-[0.12em] text-white/46 transition hover:text-white" onClick={() => setRecentSearches(getRecentSearches())} type="button">
+                    Refresh
+                  </button>
+                </div>
+                <div className="mt-4 overflow-hidden border border-white/10 bg-white/10">
+                  {recentSearches.length ? recentSearches.map((search) => (
+                    <article key={`${search.tool}-${search.query}-${search.createdAt}`} className="glow-card grid gap-3 bg-[#050607] p-4 sm:grid-cols-[0.55fr_1fr_auto] sm:items-start">
+                      <div>
+                        <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#00e0aa]">{search.tool}</p>
+                        <p className="mt-2 break-all font-mono text-sm text-white/78">{search.query}</p>
+                      </div>
+                      <p className="text-sm leading-6 text-white/54">{search.summary}</p>
+                      <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-white/34">{formatRecentDate(search.createdAt)}</p>
+                    </article>
+                  )) : <p className="bg-[#050607] p-5 text-sm leading-6 text-white/46">No searches yet. Run any tool and it will show up here.</p>}
                 </div>
               </section>
             </div>
@@ -142,4 +182,3 @@ export default function AccountPage() {
     </main>
   );
 }
-

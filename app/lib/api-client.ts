@@ -111,4 +111,84 @@ export async function createNowPaymentsInvoice(plan: "core" | "professional" | "
 
   return data.url;
 }
+export type CouponDuration = "7d" | "30d" | "90d" | "1y" | "lifetime";
+export type CouponPlan = "core" | "professional" | "enterprise";
 
+export type CouponRecord = {
+  code: string;
+  description: string;
+  creditsAward: number;
+  subscriptionPlan: CouponPlan | null;
+  subscriptionDuration: CouponDuration | null;
+  percentageDiscount: number;
+  fixedDiscountAmount: number;
+  maxGlobalRedemptions: number | null;
+  maxRedemptionsPerUser: number;
+  expiresAt: string | null;
+  active: boolean;
+  adminNotes: string;
+  redemptions: number;
+  remainingRedemptions: number | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type CouponInput = Omit<CouponRecord, "redemptions" | "remainingRedemptions" | "createdAt" | "updatedAt">;
+
+export type CouponRedemption = {
+  id: number;
+  couponCode: string;
+  email: string;
+  username: string;
+  creditsAwarded: number;
+  subscriptionPlan: CouponPlan | null;
+  subscriptionDuration: CouponDuration | null;
+  ipAddress: string;
+  redeemedAt: string;
+};
+
+export async function listCoupons(adminHash: string, query = "", status = "all") {
+  const params = new URLSearchParams({ adminHash, q: query, status });
+  const response = await fetch(`${getApiBaseUrl()}/api/admin/coupons?${params.toString()}`);
+  const data = (await response.json().catch(() => null)) as { coupons?: CouponRecord[]; error?: string } | null;
+  if (!response.ok || !data?.coupons) throw new Error(data?.error || "Could not load coupons.");
+  return data.coupons;
+}
+
+export async function saveCoupon(adminHash: string, coupon: CouponInput, originalCode?: string) {
+  const response = await fetch(`${getApiBaseUrl()}/api/admin/coupons${originalCode ? `/${encodeURIComponent(originalCode)}` : ""}`, {
+    method: originalCode ? "PUT" : "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ adminHash, coupon }),
+  });
+  const data = (await response.json().catch(() => null)) as { coupon?: CouponRecord; error?: string } | null;
+  if (!response.ok || !data?.coupon) throw new Error(data?.error || "Could not save coupon.");
+  return data.coupon;
+}
+
+export async function deleteCoupon(adminHash: string, code: string) {
+  const params = new URLSearchParams({ adminHash });
+  const response = await fetch(`${getApiBaseUrl()}/api/admin/coupons/${encodeURIComponent(code)}?${params.toString()}`, { method: "DELETE" });
+  const data = (await response.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+  if (!response.ok || !data?.ok) throw new Error(data?.error || "Could not delete coupon.");
+  return true;
+}
+
+export async function getCouponRedemptions(adminHash: string, code: string) {
+  const params = new URLSearchParams({ adminHash });
+  const response = await fetch(`${getApiBaseUrl()}/api/admin/coupons/${encodeURIComponent(code)}/redemptions?${params.toString()}`);
+  const data = (await response.json().catch(() => null)) as { redemptions?: CouponRedemption[]; error?: string } | null;
+  if (!response.ok || !data?.redemptions) throw new Error(data?.error || "Could not load redemption history.");
+  return data.redemptions;
+}
+
+export async function redeemCoupon(code: string, email: string, username: string) {
+  const response = await fetch(`${getApiBaseUrl()}/api/coupons/redeem`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code, email, username }),
+  });
+  const data = (await response.json().catch(() => null)) as { ok?: boolean; reward?: { code: string; creditsAward: number; subscriptionPlan?: CouponPlan | null; subscriptionDuration?: CouponDuration | null }; message?: string; error?: string } | null;
+  if (!response.ok || !data?.reward) throw new Error(data?.error || "Coupon could not be redeemed.");
+  return data;
+}

@@ -11,8 +11,18 @@ type Env = {
   STRIPE_PRICE_PROFESSIONAL?: string;
   STRIPE_PRICE_ENTERPRISE?: string;
   SITE_URL?: string;
-  DB?: { prepare(query: string): { bind(...values: unknown[]): { run(): Promise<unknown> } } };
+  ADMIN_EMAIL_HASH?: string;
+  DB?: D1Database;
 };
+
+type D1Result<T = unknown> = { results?: T[]; success?: boolean; meta?: unknown };
+type D1PreparedStatement = {
+  bind(...values: unknown[]): D1PreparedStatement;
+  run(): Promise<D1Result>;
+  first<T = unknown>(): Promise<T | null>;
+  all<T = unknown>(): Promise<D1Result<T>>;
+};
+type D1Database = { prepare(query: string): D1PreparedStatement };
 
 type Confidence = "low" | "medium" | "high";
 type PlanId = "core" | "professional" | "enterprise";
@@ -691,6 +701,214 @@ async function moduleSearch(module: string, query: string, env: Env): Promise<Se
     note: hint || (env.DEEPINTEL_API_KEY ? undefined : "Set DEEPINTEL_API_KEY with `wrangler secret put DEEPINTEL_API_KEY` to enable DeepIntel-backed modules."),
   };
 }
+type CouponDuration = "7d" | "30d" | "90d" | "1y" | "lifetime";
+type CouponRecord = {
+  code: string;
+  description: string;
+  creditsAward: number;
+  subscriptionPlan: PlanId | null;
+  subscriptionDuration: CouponDuration | null;
+  percentageDiscount: number;
+  fixedDiscountAmount: number;
+  maxGlobalRedemptions: number | null;
+  maxRedemptionsPerUser: number;
+  expiresAt: string | null;
+  active: boolean;
+  adminNotes: string;
+  redemptions: number;
+  remainingRedemptions: number | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type CouponRow = {
+  code: string;
+  description: string;
+  credits_award: number;
+  subscription_plan: PlanId | null;
+  subscription_duration: CouponDuration | null;
+  percentage_discount: number;
+  fixed_discount_amount: number;
+  max_global_redemptions: number | null;
+  max_redemptions_per_user: number;
+  expires_at: string | null;
+  active: number;
+  admin_notes: string;
+  redemption_count?: number;
+  created_at?: string;
+  updated_at?: string;
+};
+
+const adminEmailHash = "d55b37c";
+
+function normalizeCouponCode(code: string) {
+  return code.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 32);
+}
+
+function randomCouponCode() {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(10));
+  return [...bytes].map((byte) => alphabet[byte % alphabet.length]).join("");
+}
+
+function isValidPlan(plan: unknown): plan is PlanId {
+  return plan === "core" || plan === "professional" || plan === "enterprise";
+}
+
+function isValidDuration(duration: unknown): duration is CouponDuration {
+  return duration === "7d" || duration === "30d" || duration === "90d" || duration === "1y" || duration === "lifetime";
+}
+
+function requireDb(env: Env) {
+  return env.DB || null;
+}
+
+function isAdminHash(adminHash: unknown, env: Env) {
+  return typeof adminHash === "string" && adminHash === (env.ADMIN_EMAIL_HASH || adminEmailHash);
+}
+
+function couponFromRow(row: CouponRow): CouponRecord {
+  const redemptions = Number(row.redemption_count || 0);
+  return {
+    code: row.code,
+    description: row.description || "",
+    creditsAward: Number(row.credits_award || 0),
+    subscriptionPlan: row.subscription_plan || null,
+    subscriptionDuration: row.subscription_duration || null,
+    percentageDiscount: Number(row.percentage_discount || 0),
+    fixedDiscountAmount: Number(row.fixed_discount_amount || 0),
+    maxGlobalRedemptions: row.max_global_redemptions === null || row.max_global_redemptions === undefined ? null : Number(row.max_global_redemptions),
+    maxRedemptionsPerUser: Number(row.max_redemptions_per_user || 1),
+    expiresAt: row.expires_at || null,
+    active: Boolean(row.active),
+    adminNotes: row.admin_notes || "",
+    redemptions,
+    remainingRedemptions: row.max_global_redemptions === null || row.max_global_redemptions === undefined ? null : Math.max(0, Number(row.max_global_redemptions) - redemptions),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function cleanCouponInput(input: Record<string, unknown>) {
+  const code = normalizeCouponCode(typeof input.code === "string" && input.code.trim() ? input.code : randomCouponCode());
+  const subscriptionPlan = isValidPlan(input.subscriptionPlan) ? input.subscriptionPlan : null;
+  const subscriptionDuration = isValidDuration(input.subscriptionDuration) ? input.subscriptionDuration : null;
+  const maxGlobal = Number(input.maxGlobalRedemptions || 0);
+  const maxPerUser = Number(input.maxRedemptionsPerUser || 1);
+  const expiresAt = typeof input.expiresAt === "string" && input.expiresAt.trim() ? input.expiresAt.trim() : null;
+
+  return {
+    code,
+    description: typeof input.description === "string" ? input.description.trim().slice(0, 240) : "",
+    creditsAward: Math.max(0, Math.floor(Number(input.creditsAward || 0))),
+    subscriptionPlan,
+    subscriptionDuration,
+    percentageDiscount: Math.max(0, Math.min(100, Number(input.percentageDiscount || 0))),
+    fixedDiscountAmount: Math.max(0, Number(input.fixedDiscountAmount || 0)),
+    maxGlobalRedemptions: maxGlobal > 0 ? Math.floor(maxGlobal) : null,
+    maxRedemptionsPerUser: Math.max(1, Math.floor(maxPerUser || 1)),
+    expiresAt,
+    active: Boolean(input.active ?? true),
+    adminNotes: typeof input.adminNotes === "string" ? input.adminNotes.trim().slice(0, 1000) : "",
+  };
+}
+
+async function couponByCode(db: D1Database, code: string) {
+  const row = await db.prepare("select c.*, count(r.id) as redemption_count from coupons c left join coupon_redemptions r on r.coupon_code = c.code where c.code = ? group by c.code").bind(code).first<CouponRow>();
+  return row ? couponFromRow(row) : null;
+}
+
+function couponSelectSql(where: string) {
+  return `select c.*, count(r.id) as redemption_count from coupons c left join coupon_redemptions r on r.coupon_code = c.code ${where} group by c.code order by c.created_at desc limit 100`;
+}
+
+async function listAdminCoupons(request: Request, env: Env) {
+  const db = requireDb(env);
+  if (!db) return json({ error: "D1 database is not bound as DB." }, request, env, 500);
+  const url = new URL(request.url);
+  if (!isAdminHash(url.searchParams.get("adminHash"), env)) return json({ error: "Admin access required." }, request, env, 403);
+  const q = `%${(url.searchParams.get("q") || "").trim()}%`;
+  const status = url.searchParams.get("status") || "all";
+  const whereParts = [];
+  const binds: unknown[] = [];
+  if (q !== "%%") {
+    whereParts.push("(c.code like ? or c.description like ? or c.admin_notes like ?)");
+    binds.push(q, q, q);
+  }
+  if (status === "active") whereParts.push("c.active = 1");
+  if (status === "disabled") whereParts.push("c.active = 0");
+  const result = await db.prepare(couponSelectSql(whereParts.length ? `where ${whereParts.join(" and ")}` : "")).bind(...binds).all<CouponRow>();
+  return json({ coupons: (result.results || []).map(couponFromRow) }, request, env);
+}
+
+async function saveAdminCoupon(request: Request, env: Env, originalCode?: string) {
+  const db = requireDb(env);
+  if (!db) return json({ error: "D1 database is not bound as DB." }, request, env, 500);
+  const body = (await request.json().catch(() => null)) as { adminHash?: string; coupon?: Record<string, unknown> } | null;
+  if (!isAdminHash(body?.adminHash, env)) return json({ error: "Admin access required." }, request, env, 403);
+  if (!body?.coupon) return json({ error: "Missing coupon payload." }, request, env, 400);
+  const coupon = cleanCouponInput(body.coupon);
+  if (!coupon.code) return json({ error: "Coupon code is required." }, request, env, 400);
+  if (originalCode) {
+    await db.prepare("update coupons set code = ?, description = ?, credits_award = ?, subscription_plan = ?, subscription_duration = ?, percentage_discount = ?, fixed_discount_amount = ?, max_global_redemptions = ?, max_redemptions_per_user = ?, expires_at = ?, active = ?, admin_notes = ?, updated_at = current_timestamp where code = ?").bind(coupon.code, coupon.description, coupon.creditsAward, coupon.subscriptionPlan, coupon.subscriptionDuration, coupon.percentageDiscount, coupon.fixedDiscountAmount, coupon.maxGlobalRedemptions, coupon.maxRedemptionsPerUser, coupon.expiresAt, coupon.active ? 1 : 0, coupon.adminNotes, normalizeCouponCode(originalCode)).run();
+  } else {
+    await db.prepare("insert into coupons (code, description, credits_award, subscription_plan, subscription_duration, percentage_discount, fixed_discount_amount, max_global_redemptions, max_redemptions_per_user, expires_at, active, admin_notes, created_by_hash) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(coupon.code, coupon.description, coupon.creditsAward, coupon.subscriptionPlan, coupon.subscriptionDuration, coupon.percentageDiscount, coupon.fixedDiscountAmount, coupon.maxGlobalRedemptions, coupon.maxRedemptionsPerUser, coupon.expiresAt, coupon.active ? 1 : 0, coupon.adminNotes, body.adminHash).run();
+  }
+  return json({ coupon: await couponByCode(db, coupon.code) }, request, env);
+}
+
+async function deleteAdminCoupon(request: Request, env: Env, code: string) {
+  const db = requireDb(env);
+  if (!db) return json({ error: "D1 database is not bound as DB." }, request, env, 500);
+  const url = new URL(request.url);
+  if (!isAdminHash(url.searchParams.get("adminHash"), env)) return json({ error: "Admin access required." }, request, env, 403);
+  await db.prepare("delete from coupons where code = ?").bind(normalizeCouponCode(code)).run();
+  return json({ ok: true }, request, env);
+}
+
+async function listCouponRedemptions(request: Request, env: Env, code: string) {
+  const db = requireDb(env);
+  if (!db) return json({ error: "D1 database is not bound as DB." }, request, env, 500);
+  const url = new URL(request.url);
+  if (!isAdminHash(url.searchParams.get("adminHash"), env)) return json({ error: "Admin access required." }, request, env, 403);
+  const result = await db.prepare("select id, coupon_code as couponCode, email, username, credits_awarded as creditsAwarded, subscription_plan as subscriptionPlan, subscription_duration as subscriptionDuration, ip_address as ipAddress, redeemed_at as redeemedAt from coupon_redemptions where coupon_code = ? order by redeemed_at desc limit 100").bind(normalizeCouponCode(code)).all();
+  return json({ redemptions: result.results || [] }, request, env);
+}
+
+function durationEndDate(duration: CouponDuration | null) {
+  if (!duration || duration === "lifetime") return null;
+  const date = new Date();
+  if (duration === "7d") date.setDate(date.getDate() + 7);
+  if (duration === "30d") date.setDate(date.getDate() + 30);
+  if (duration === "90d") date.setDate(date.getDate() + 90);
+  if (duration === "1y") date.setFullYear(date.getFullYear() + 1);
+  return date.toISOString();
+}
+
+async function redeemCoupon(request: Request, env: Env) {
+  const db = requireDb(env);
+  if (!db) return json({ error: "D1 database is not bound as DB." }, request, env, 500);
+  const body = (await request.json().catch(() => null)) as { code?: string; email?: string; username?: string } | null;
+  const code = normalizeCouponCode(body?.code || "");
+  const email = (body?.email || "").trim().toLowerCase();
+  const username = (body?.username || "").trim().slice(0, 18);
+  if (!code || !email) return json({ error: "Coupon code and account email are required." }, request, env, 400);
+  const coupon = await couponByCode(db, code);
+  if (!coupon) return json({ error: "Coupon does not exist." }, request, env, 404);
+  if (!coupon.active) return json({ error: "Coupon is disabled." }, request, env, 400);
+  if (coupon.expiresAt && new Date(coupon.expiresAt).getTime() < Date.now()) return json({ error: "Coupon has expired." }, request, env, 400);
+  if (coupon.maxGlobalRedemptions !== null && coupon.redemptions >= coupon.maxGlobalRedemptions) return json({ error: "Coupon has no redemptions remaining." }, request, env, 400);
+  const userCount = await db.prepare("select count(*) as count from coupon_redemptions where coupon_code = ? and email = ?").bind(code, email).first<{ count: number }>();
+  if (Number(userCount?.count || 0) >= coupon.maxRedemptionsPerUser) return json({ error: "This account already redeemed the maximum allowed uses for this coupon." }, request, env, 400);
+  const reward = { code, creditsAward: coupon.creditsAward, subscriptionPlan: coupon.subscriptionPlan, subscriptionDuration: coupon.subscriptionDuration };
+  const ip = getClientIp(request);
+  await db.prepare("insert into coupon_redemptions (coupon_code, email, username, credits_awarded, subscription_plan, subscription_duration, percentage_discount, fixed_discount_amount, ip_address, granted_rewards) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(code, email, username, coupon.creditsAward, coupon.subscriptionPlan, coupon.subscriptionDuration, coupon.percentageDiscount, coupon.fixedDiscountAmount, ip, JSON.stringify(reward)).run();
+  if (coupon.subscriptionPlan) {
+    await db.prepare("insert into subscriptions (email, username, ip_address, plan, credits, unlimited, source, ends_at) values (?, ?, ?, ?, ?, ?, 'coupon', ?)").bind(email, username, ip, coupon.subscriptionPlan, planCredits[coupon.subscriptionPlan], coupon.subscriptionDuration === "lifetime" ? 1 : 0, durationEndDate(coupon.subscriptionDuration)).run();
+  }
+  await db.prepare("insert into billing_history (email, username, source, reference, plan, credits, amount, status, notes) values (?, ?, 'coupon', ?, ?, ?, 0, 'completed', ?)").bind(email, username, code, coupon.subscriptionPlan, coupon.creditsAward, coupon.description).run();
+  return json({ ok: true, message: "Coupon redeemed.", reward }, request, env);
+}
 function exportResult(query: string): SearchResult {
   return {
     ok: true,
@@ -718,6 +936,12 @@ const worker = {
     if (route === "/" || route === "/api/health") return json({ ok: true, kind: "health", query: "health", generatedAt: new Date().toISOString(), summary: "OSINT Forge API is online.", signals: [], sources: [] }, request, env);
     if (route === "/api/stripe/checkout" && request.method === "POST") return json(await createStripeCheckout(request, env), request, env);
     if (route === "/api/nowpayments/invoice" && request.method === "POST") return json(await createNowPaymentsInvoice(request, env), request, env);
+    if (route === "/api/coupons/redeem" && request.method === "POST") return redeemCoupon(request, env);
+    if (route === "/api/admin/coupons" && request.method === "GET") return listAdminCoupons(request, env);
+    if (route === "/api/admin/coupons" && request.method === "POST") return saveAdminCoupon(request, env);
+    if (route.startsWith("/api/admin/coupons/") && route.endsWith("/redemptions") && request.method === "GET") return listCouponRedemptions(request, env, decodeURIComponent(route.replace("/api/admin/coupons/", "").replace("/redemptions", "")));
+    if (route.startsWith("/api/admin/coupons/") && request.method === "PUT") return saveAdminCoupon(request, env, decodeURIComponent(route.replace("/api/admin/coupons/", "")));
+    if (route.startsWith("/api/admin/coupons/") && request.method === "DELETE") return deleteAdminCoupon(request, env, decodeURIComponent(route.replace("/api/admin/coupons/", "")));
 
     if (request.method !== "POST" && request.method !== "GET") return json({ error: "Method not allowed" }, request, env, 405);
 
