@@ -7,6 +7,7 @@ import { InteractiveEffects } from "../interactive-effects";
 import { AccountRequired } from "./account-required";
 import { AccountState, consumeSearch, getAccount, getRemainingSearches, recordRecentSearch } from "../lib/account-store";
 import { runToolSearch, SearchKind, SearchResponse } from "../lib/api-client";
+import { downloadTextReport } from "../lib/report-export";
 import { ToolSidebar } from "../tool-sidebar";
 
 type ToolSearchPageProps = {
@@ -135,7 +136,14 @@ export function ToolSearchPage({
     try {
       const searchResult = await runToolSearch(tool, cleanQuery);
       setResult(searchResult);
-      recordRecentSearch({ tool: eyebrow, query: searchResult.query, summary: searchResult.summary });
+      recordRecentSearch({
+        tool: eyebrow,
+        query: searchResult.query,
+        summary: searchResult.summary,
+        signals: searchResult.signals,
+        sources: searchResult.sources,
+        note: searchResult.note,
+      });
       setProgress(100);
       setRemainingMs(0);
     } catch (searchError) {
@@ -213,7 +221,18 @@ export function ToolSearchPage({
               <section className="module-result-terminal mt-8 overflow-hidden border border-white/10 bg-black/80 font-mono shadow-2xl shadow-black/40" data-reveal>
                 <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-[11px] uppercase tracking-[0.16em] text-white/44">
                   <span>{formatToolName(tool)} :: DeepIntel stream</span>
-                  <span className="text-[#00e0aa]">{isLoading ? `ETA ${formatSeconds(remainingMs)}` : result ? "Complete" : "Idle"}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {result ? (
+                      <button
+                        className="border border-[#f0b35a]/45 px-3 py-1 font-mono text-[10px] font-black uppercase tracking-[0.14em] text-[#f0b35a] transition hover:bg-[#f0b35a] hover:text-black"
+                        onClick={() => downloadTextReport(result, eyebrow)}
+                        type="button"
+                      >
+                        Export TXT
+                      </button>
+                    ) : null}
+                    <span className="text-[#00e0aa]">{isLoading ? `ETA ${formatSeconds(remainingMs)}` : result ? "Complete" : "Idle"}</span>
+                  </div>
                 </header>
                 <div className="h-1 bg-white/8">
                   <div className="module-result-progress h-full bg-[#00e0aa] transition-[width] duration-200 ease-linear" style={{ width: `${progress}%` }} />

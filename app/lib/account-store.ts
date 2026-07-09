@@ -24,6 +24,17 @@ export type RecentSearch = {
   query: string;
   summary: string;
   createdAt: string;
+  signals?: Array<{
+    label: string;
+    value: string;
+    confidence: "low" | "medium" | "high";
+    source?: string;
+  }>;
+  sources?: Array<{
+    name: string;
+    url?: string;
+  }>;
+  note?: string;
 };
 
 export type CouponReward = {
@@ -208,7 +219,7 @@ export function getRecentSearches() {
   }
 }
 
-export function recordRecentSearch(search: Pick<RecentSearch, "tool" | "query" | "summary">) {
+export function recordRecentSearch(search: Omit<RecentSearch, "createdAt">) {
   if (!canUseStorage()) return [] as RecentSearch[];
 
   const recent = getRecentSearches();
