@@ -22,6 +22,17 @@ export type SearchResponse = {
 
 const localFallbackBase = "http://127.0.0.1:8787";
 
+function couponApiError(data: { error?: string } | null | undefined, fallback: string) {
+  if (data?.error === "Missing search query") {
+    return "Coupon API is not deployed yet. Deploy the updated Cloudflare Worker and run the D1 coupon migration.";
+  }
+
+  if (data?.error === "D1 database is not bound as DB.") {
+    return "Coupon database is not connected yet. Add the D1 binding named DB, run the migration, then redeploy the Worker.";
+  }
+
+  return data?.error || fallback;
+}
 export function getApiBaseUrl() {
   return (
     process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ||
@@ -151,7 +162,7 @@ export async function listCoupons(adminHash: string, query = "", status = "all")
   const params = new URLSearchParams({ adminHash, q: query, status });
   const response = await fetch(`${getApiBaseUrl()}/api/admin/coupons?${params.toString()}`);
   const data = (await response.json().catch(() => null)) as { coupons?: CouponRecord[]; error?: string } | null;
-  if (!response.ok || !data?.coupons) throw new Error(data?.error || "Could not load coupons.");
+  if (!response.ok || !data?.coupons) throw new Error(couponApiError(data, "Could not load coupons."));
   return data.coupons;
 }
 
@@ -162,7 +173,7 @@ export async function saveCoupon(adminHash: string, coupon: CouponInput, origina
     body: JSON.stringify({ adminHash, coupon }),
   });
   const data = (await response.json().catch(() => null)) as { coupon?: CouponRecord; error?: string } | null;
-  if (!response.ok || !data?.coupon) throw new Error(data?.error || "Could not save coupon.");
+  if (!response.ok || !data?.coupon) throw new Error(couponApiError(data, "Could not save coupon."));
   return data.coupon;
 }
 
@@ -170,7 +181,7 @@ export async function deleteCoupon(adminHash: string, code: string) {
   const params = new URLSearchParams({ adminHash });
   const response = await fetch(`${getApiBaseUrl()}/api/admin/coupons/${encodeURIComponent(code)}?${params.toString()}`, { method: "DELETE" });
   const data = (await response.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
-  if (!response.ok || !data?.ok) throw new Error(data?.error || "Could not delete coupon.");
+  if (!response.ok || !data?.ok) throw new Error(couponApiError(data, "Could not delete coupon."));
   return true;
 }
 
@@ -178,7 +189,7 @@ export async function getCouponRedemptions(adminHash: string, code: string) {
   const params = new URLSearchParams({ adminHash });
   const response = await fetch(`${getApiBaseUrl()}/api/admin/coupons/${encodeURIComponent(code)}/redemptions?${params.toString()}`);
   const data = (await response.json().catch(() => null)) as { redemptions?: CouponRedemption[]; error?: string } | null;
-  if (!response.ok || !data?.redemptions) throw new Error(data?.error || "Could not load redemption history.");
+  if (!response.ok || !data?.redemptions) throw new Error(couponApiError(data, "Could not load redemption history."));
   return data.redemptions;
 }
 
@@ -189,6 +200,6 @@ export async function redeemCoupon(code: string, email: string, username: string
     body: JSON.stringify({ code, email, username }),
   });
   const data = (await response.json().catch(() => null)) as { ok?: boolean; reward?: { code: string; creditsAward: number; subscriptionPlan?: CouponPlan | null; subscriptionDuration?: CouponDuration | null }; message?: string; error?: string } | null;
-  if (!response.ok || !data?.reward) throw new Error(data?.error || "Coupon could not be redeemed.");
+  if (!response.ok || !data?.reward) throw new Error(couponApiError(data, "Coupon could not be redeemed."));
   return data;
 }
