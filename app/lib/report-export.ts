@@ -292,7 +292,7 @@ function intelligenceSummary(result: SearchResponse) {
   const passwords = uniqueValues(groups.map(([, rows]) => itemPassword(rows)));
   const dated = groups.filter(([, rows]) => itemDate(rows)).length;
   return [
-    tree("Sorted Records", String(groups.length)),
+    tree("Records", String(groups.length)),
     tree("Related Domains", String(domains.length)),
     tree("Observed URLs", String(urls.length)),
     tree("Credential Variants", String(passwords.length)),
@@ -303,13 +303,13 @@ function intelligenceSummary(result: SearchResponse) {
 function sortedAnalysisSections(result: SearchResponse) {
   if (!groupItemSignals(result).length) return "";
   return [
-    section("AUTO-SORTED URL HIERARCHY"),
+    section("URL HIERARCHY"),
     urlHierarchy(result),
     "",
-    section("AUTO-SORTED CREDENTIAL REUSE"),
+    section("CREDENTIAL REUSE"),
     credentialReuseGraph(result),
     "",
-    section("AUTO-SORTED TIMELINE"),
+    section("TIMELINE"),
     timelineOverview(result),
     "",
     section("INTELLIGENCE SUMMARY"),
@@ -351,6 +351,60 @@ function sourceOverview(result: SearchResponse) {
   }).join("\n");
 }
 
+function boxTreeSeparator(title: string) {
+  const line = "┌" + "─".repeat(innerWidth) + "┐";
+  const mid = "├" + "─".repeat(innerWidth) + "┤";
+  const bottom = "└" + "─".repeat(innerWidth) + "┘";
+  const row = `│ █ ${cleanLine(title).toUpperCase()} ▓▒░`.padEnd(innerWidth + 1) + "│";
+  return [line, row, mid, bottom].join("\n");
+}
+function fieldCode(label: string) {
+  if (/^url/i.test(label)) return "URL";
+  if (/^(username|email|mail)/i.test(label)) return "MAIL";
+  if (/^password$/i.test(label)) return "PW";
+  if (/password hash/i.test(label)) return "PW HASH";
+  if (/^(id|canonical)/i.test(label)) return "ID";
+  if (/log id/i.test(label)) return "LOG";
+  if (/domain/i.test(label)) return "DOMAIN";
+  if (/path/i.test(label)) return "PATH";
+  if (/archive/i.test(label)) return "ARCHIVE";
+  if (/(indexed|pwned|observed|date|created|updated)/i.test(label)) return "DATE";
+  if (/hwid/i.test(label)) return "HWID";
+  if (/device/i.test(label)) return "DEVICE";
+  return label.toUpperCase().replace(/[^A-Z0-9]+/g, " ").trim().slice(0, 14) || "FIELD";
+}
+
+function fieldRank(label: string) {
+  const code = fieldCode(label);
+  const order = ["URL", "DOMAIN", "PATH", "MAIL", "PW", "PW HASH", "ID", "LOG", "ARCHIVE", "DATE", "DEVICE", "HWID"];
+  const index = order.indexOf(code);
+  return index === -1 ? order.length : index;
+}
+
+function sortedRowsForItem(rows: ItemRow[]) {
+  return [...rows]
+    .filter((row) => !isCountValue(row.value))
+    .sort((a, b) => fieldRank(a.label) - fieldRank(b.label) || a.label.localeCompare(b.label));
+}
+
+function itemSignalIndex(result: SearchResponse) {
+  const groups = groupItemSignals(result);
+  if (!groups.length) {
+    return signalOverview(result).replace(/\|-/g, "├──►").replace(/`-/g, "└──►");
+  }
+
+  return groups.flatMap(([index, rows]) => {
+    const cleanIndex = String(Number(index) || index).padStart(2, "0");
+    const sortedRows = sortedRowsForItem(rows).slice(0, 18);
+    return [
+      boxTreeSeparator(`Item ${cleanIndex}`),
+      ...sortedRows.map((row, rowIndex) => {
+        const lastRow = rowIndex === sortedRows.length - 1;
+        return `${lastRow ? "└" : "├"}──► ${fieldCode(row.label).padEnd(8)} ${cleanIndex} │ ${cleanLine(row.value).slice(0, 88)}`;
+      }),
+    ];
+  }).join("\n");
+}
 function itemBox(index: string, rows: ItemRow[]) {
   const top = `+- ITEM #${index} ${"-".repeat(Math.max(0, width - 12))}+`;
   const bottom = `+${"-".repeat(innerWidth)}+`;
@@ -473,10 +527,7 @@ export function makeAsciiDocumentReport(result: SearchResponse, toolName: string
     ...rows.map((value) => row(value)),
     bottom,
   ].join("\n");
-  const signalRows = signals.slice(0, 40).map((signal, index) => {
-    const value = cleanLine(signal.value).slice(0, 72);
-    return `├──► [${String(index + 1).padStart(3, "0")}] ${cleanLine(signal.label)} ─ ${value}`;
-  });
+  const signalRows = itemSignalIndex(result);
   const itemRows = groups.flatMap(([index, rows], groupIndex) => [
     `${groupIndex === groups.length - 1 ? "└" : "├"}──► ITEM #${index}`,
     ...rows.slice(0, 16).map((item, itemIndex, allItems) => `│   ${itemIndex === allItems.length - 1 ? "└" : "├"}──► ${item.label}: ${cleanLine(item.value).slice(0, 78)}`),
@@ -513,21 +564,20 @@ export function makeAsciiDocumentReport(result: SearchResponse, toolName: string
     `└──► ${cleanLine(result.summary)}`,
     result.note ? `    └──► ${cleanLine(result.note)}` : "",
     "",
-    groups.length ? panel("Auto Sorted URL Hierarchy") : "",
+    groups.length ? panel("URL Hierarchy") : "",
     groups.length ? boxTreeText(urlHierarchy(result)) : "",
     groups.length ? "" : "",
-    groups.length ? panel("Auto Sorted Credential Reuse") : "",
+    groups.length ? panel("Credential Reuse") : "",
     groups.length ? boxTreeText(credentialReuseGraph(result)) : "",
     groups.length ? "" : "",
-    groups.length ? panel("Auto Sorted Timeline") : "",
+    groups.length ? panel("Timeline") : "",
     groups.length ? boxTreeText(timelineOverview(result)) : "",
     groups.length ? "" : "",
     groups.length ? panel("Intelligence Summary") : "",
     groups.length ? boxTreeText(intelligenceSummary(result)) : "",
     groups.length ? "" : "",
-    "█ SIGNALS",
-    "│",
-    signalRows.length ? signalRows.join("\n") : "└──► No signals returned",
+    panel("Item Index"),
+    signalRows || "└──► No item signals returned",
     "",
     groups.length ? panel("Item Groups") : "",
     groups.length ? itemRows.join("\n") : "",
