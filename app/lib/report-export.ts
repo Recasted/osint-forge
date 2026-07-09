@@ -1,5 +1,7 @@
 import type { SearchResponse } from "./api-client";
 
+export type ReportFormat = "txt" | "json" | "html" | "doc" | "casefile" | "ascii";
+
 const width = 100;
 const innerWidth = width - 2;
 
@@ -15,20 +17,22 @@ function cleanLine(value: string) {
   return brandProviderText(String(value || "").replace(/\s+/g, " ").trim());
 }
 
+function escapeHtml(value: string) {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+}
+
 function divider() {
   return "=".repeat(width);
 }
 
 function boxLine(text = "") {
   const clean = cleanLine(text);
-  return `â”‚ ${clean.padEnd(innerWidth - 2).slice(0, innerWidth - 2)} â”‚`;
+  return `| ${clean.padEnd(innerWidth - 2).slice(0, innerWidth - 2)} |`;
 }
 
 function box(title: string, rows: string[] = []) {
-  const top = `â”Œ${"â”€".repeat(innerWidth)}â”`;
-  const mid = `â”œ${"â”€".repeat(innerWidth)}â”¤`;
-  const bottom = `â””${"â”€".repeat(innerWidth)}â”˜`;
-  return [top, boxLine(title), ...(rows.length ? [mid, ...rows.map((row) => boxLine(row))] : []), bottom].join("\n");
+  const rule = `+${"-".repeat(innerWidth)}+`;
+  return [rule, boxLine(title), ...(rows.length ? [rule, ...rows.map((row) => boxLine(row))] : []), rule].join("\n");
 }
 
 function section(title: string) {
@@ -36,7 +40,7 @@ function section(title: string) {
 }
 
 function tree(label: string, value?: string) {
-  const left = `â”œâ”€ ${label}`;
+  const left = `|- ${label}`;
   if (!value) return left;
   const dots = ".".repeat(Math.max(2, 34 - left.length));
   return `${left}${dots} ${value}`;
@@ -72,7 +76,7 @@ function modulesReturned(result: SearchResponse) {
 
 function sourceName(result: SearchResponse) {
   const firstProvider = result.sources?.find((source) => !/parser|cloudflare/i.test(source.name));
-  return firstProvider?.name || "OSINTForge";
+  return cleanLine(firstProvider?.name || "OSINTForge");
 }
 
 function groupItemSignals(result: SearchResponse) {
@@ -109,22 +113,22 @@ function moduleOverview(result: SearchResponse, toolName: string) {
 
 function signalOverview(result: SearchResponse) {
   const signals = signalsForReport(result);
-  if (!signals.length) return "â”œâ”€ No signals returned.";
+  if (!signals.length) return "|- No signals returned.";
 
   return signals.slice(0, 40).map((signal, index) => {
-    const meta = signal.source ? `${signal.confidence} / ${signal.source}` : signal.confidence;
-    return `    â”œâ”€ [${String(index + 1).padStart(3, "0")}] ${cleanLine(signal.label)}: ${cleanLine(signal.value)}  (${meta})`;
+    const meta = signal.source ? `${signal.confidence} / ${cleanLine(signal.source)}` : signal.confidence;
+    return `    |- [${String(index + 1).padStart(3, "0")}] ${cleanLine(signal.label)}: ${cleanLine(signal.value)}  (${meta})`;
   }).join("\n");
 }
 
 function sourceOverview(result: SearchResponse) {
-  if (!result.sources?.length) return "â”œâ”€ No sources returned.";
-  return result.sources.map((source, index) => tree(`Source #${String(index + 1).padStart(2, "0")}`, `${source.name}${source.url ? ` -> ${source.url}` : ""}`)).join("\n");
+  if (!result.sources?.length) return "|- No sources returned.";
+  return result.sources.map((source, index) => tree(`Source #${String(index + 1).padStart(2, "0")}`, `${cleanLine(source.name)}${source.url ? ` -> ${source.url}` : ""}`)).join("\n");
 }
 
 function itemBox(index: string, rows: Array<{ label: string; value: string; confidence: string; source?: string }>) {
-  const top = `â”Œâ”€ ITEM #${index} ${"â”€".repeat(Math.max(0, width - 12))}â”`;
-  const bottom = `â””${"â”€".repeat(innerWidth)}â”˜`;
+  const top = `+- ITEM #${index} ${"-".repeat(Math.max(0, width - 12))}+`;
+  const bottom = `+${"-".repeat(innerWidth)}+`;
   const preferred = ["Url", "Domain", "Path", "Username", "Email", "Password", "Log", "Id", "Canonical Credential Id", "Indexed At"];
   const ordered = [
     ...preferred.flatMap((label) => rows.filter((row) => row.label.toLowerCase() === label.toLowerCase())),
@@ -133,7 +137,7 @@ function itemBox(index: string, rows: Array<{ label: string; value: string; conf
 
   return [
     top,
-    ...ordered.slice(0, 24).map((row) => `â”‚   â”œâ”€ ${row.label.padEnd(22, ".")} ${cleanLine(row.value).slice(0, 68)}`),
+    ...ordered.slice(0, 24).map((row) => `|   |- ${row.label.padEnd(22, ".")} ${cleanLine(row.value).slice(0, 68)}`),
     bottom,
   ].join("\n");
 }
@@ -143,7 +147,7 @@ function itemSections(result: SearchResponse) {
   if (!groups.length) return "";
 
   return [
-    section(`${sourceName(result).toUpperCase()} â†’ DATA ITEMS`),
+    section(`${sourceName(result).toUpperCase()} -> DATA ITEMS`),
     ...groups.map(([index, rows]) => itemBox(index, rows)),
   ].join("\n\n");
 }
@@ -159,8 +163,8 @@ export function makeSearchReport(result: SearchResponse, toolName: string) {
     divider(),
     "",
     box(`TARGET: ${result.query}`),
-    "                                                 â”‚",
-    "                                                 â–¼",
+    "                                                 |",
+    "                                                 v",
     box("OSINTForge Investigation Engine", [
       `Module: ${toolName}`,
       `Provider: ${provider}`,
@@ -169,8 +173,8 @@ export function makeSearchReport(result: SearchResponse, toolName: string) {
     ]),
     "",
     section("CONTEXT  /   REASON"),
-    `â”œâ”€ ${cleanLine(result.summary)}`,
-    result.note ? `â”œâ”€ ${cleanLine(result.note)}` : "",
+    `|- ${cleanLine(result.summary)}`,
+    result.note ? `|- ${cleanLine(result.note)}` : "",
     "",
     section("MODULE OVERVIEW"),
     moduleOverview(result, toolName),
@@ -190,22 +194,133 @@ export function makeSearchReport(result: SearchResponse, toolName: string) {
     divider(),
     "REVIEW NOTES",
     divider(),
-    "â”œâ”€ Confirm provider output before using this in a case file.",
-    "â”œâ”€ Keep raw search context with the exported report where possible.",
-    "â””â”€ Generated locally by OSINT Forge.",
+    "|- Confirm provider output before using this in a case file.",
+    "|- Keep raw search context with the exported report where possible.",
+    "`- Generated locally by OSINT Forge.",
   ].filter(Boolean).join("\n");
 }
 
-export function searchReportFilename(result: SearchResponse, toolName: string) {
-  return `osint-forge-${slug(toolName)}-${slug(result.query)}.txt`;
+export function makeCaseFileReport(result: SearchResponse, toolName: string) {
+  const signals = signalsForReport(result);
+  return [
+    divider(),
+    `OSINTFORGE CASE FILE :: ${toolName.toUpperCase()}`,
+    divider(),
+    `Generated..... ${new Date().toISOString()}`,
+    `Target........ ${result.query}`,
+    `Target Type... ${detectTargetType(result.query)}`,
+    `Module........ ${toolName}`,
+    `Provider...... ${sourceName(result)}`,
+    `Signal Count.. ${signals.length}`,
+    "",
+    section("EXECUTIVE SUMMARY"),
+    cleanLine(result.summary),
+    result.note ? cleanLine(result.note) : "",
+    "",
+    section("EVIDENCE SUMMARY"),
+    signals.length ? signals.map((signal, index) => `${String(index + 1).padStart(2, "0")}. ${cleanLine(signal.label).padEnd(28, ".")} ${cleanLine(signal.value)} (${signal.confidence}${signal.source ? ` / ${cleanLine(signal.source)}` : ""})`).join("\n") : "No signals returned.",
+    "",
+    section("SOURCES"),
+    sourceOverview(result),
+    "",
+    section("REVIEW NOTES"),
+    "This report is generated for authorized investigation, triage, and defensive review.",
+  ].filter(Boolean).join("\n");
 }
 
-export function downloadTextReport(result: SearchResponse, toolName: string) {
-  const blob = new Blob([makeSearchReport(result, toolName)], { type: "text/plain;charset=utf-8" });
+export function makeAsciiDocumentReport(result: SearchResponse, toolName: string) {
+  const signals = signalsForReport(result);
+  const groups = groupItemSignals(result);
+  return [
+    `OSINTFORGE ASCII DOCUMENT`,
+    divider(),
+    "",
+    `                ${result.query}`,
+    "                         |",
+    "                         v",
+    `             [ ${toolName.toUpperCase()} ]`,
+    "                         |",
+    "                         v",
+    `             [ ${signals.length} SIGNALS ]`,
+    "",
+    divider(),
+    "MODULE OVERVIEW",
+    divider(),
+    moduleOverview(result, toolName),
+    "",
+    divider(),
+    "RELATIONSHIP / SIGNAL TREE",
+    divider(),
+    `${result.query}`,
+    signals.slice(0, 30).map((signal) => `|-- ${cleanLine(signal.label)} -> ${cleanLine(signal.value).slice(0, 92)}`).join("\n") || "|-- No signals returned",
+    "",
+    groups.length ? divider() : "",
+    groups.length ? "ITEM GROUPS" : "",
+    groups.length ? divider() : "",
+    groups.map(([index, rows]) => [`ITEM #${index}`, ...rows.slice(0, 12).map((row) => `|-- ${row.label}: ${cleanLine(row.value)}`)].join("\n")).join("\n\n"),
+    "",
+    divider(),
+    "SOURCES",
+    divider(),
+    sourceOverview(result),
+  ].filter(Boolean).join("\n");
+}
+export function makeJsonReport(result: SearchResponse, toolName: string) {
+  return JSON.stringify({
+    generatedAt: new Date().toISOString(),
+    module: toolName,
+    kind: result.kind,
+    query: result.query,
+    searchedAt: result.generatedAt,
+    targetType: detectTargetType(result.query),
+    summary: cleanLine(result.summary),
+    note: result.note ? cleanLine(result.note) : null,
+    signals: signalsForReport(result).map((signal) => ({
+      label: cleanLine(signal.label),
+      value: cleanLine(signal.value),
+      confidence: signal.confidence,
+      source: signal.source ? cleanLine(signal.source) : undefined,
+    })),
+    sources: result.sources?.map((source) => ({ name: cleanLine(source.name), url: source.url })) || [],
+  }, null, 2);
+}
+
+export function makeHtmlReport(result: SearchResponse, toolName: string) {
+  const text = makeSearchReport(result, toolName);
+  return `<!doctype html><html><head><meta charset="utf-8"><title>OSINT Forge Report</title><style>body{background:#050607;color:#f3f4f0;font-family:Consolas,monospace;padding:32px;line-height:1.55}pre{white-space:pre-wrap;border:1px solid #1f2a27;padding:24px;background:#000;color:#00e0aa}</style></head><body><pre>${escapeHtml(text)}</pre></body></html>`;
+}
+
+export function reportContent(result: SearchResponse, toolName: string, format: ReportFormat) {
+  if (format === "json") return makeJsonReport(result, toolName);
+  if (format === "html" || format === "doc") return makeHtmlReport(result, toolName);
+  if (format === "casefile") return makeCaseFileReport(result, toolName);
+  if (format === "ascii") return makeAsciiDocumentReport(result, toolName);
+  return makeSearchReport(result, toolName);
+}
+
+export function searchReportFilename(result: SearchResponse, toolName: string, format: ReportFormat) {
+  const extension = format === "json" ? "json" : format === "html" ? "html" : format === "doc" ? "doc" : "txt";
+  const style = format === "txt" ? "brief" : format;
+  return `osint-forge-${slug(toolName)}-${slug(result.query)}-${style}.${extension}`;
+}
+
+function contentType(format: ReportFormat) {
+  if (format === "json") return "application/json;charset=utf-8";
+  if (format === "html") return "text/html;charset=utf-8";
+  if (format === "doc") return "application/msword;charset=utf-8";
+  return "text/plain;charset=utf-8";
+}
+
+export function downloadReport(result: SearchResponse, toolName: string, format: ReportFormat) {
+  const blob = new Blob([reportContent(result, toolName, format)], { type: contentType(format) });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = searchReportFilename(result, toolName);
+  anchor.download = searchReportFilename(result, toolName, format);
   anchor.click();
   URL.revokeObjectURL(url);
+}
+
+export function downloadTextReport(result: SearchResponse, toolName: string) {
+  downloadReport(result, toolName, "txt");
 }

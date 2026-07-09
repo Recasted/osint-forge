@@ -7,7 +7,7 @@ import { InteractiveEffects } from "../interactive-effects";
 import { AccountRequired } from "./account-required";
 import { AccountState, consumeSearch, getAccount, getRemainingSearches, recordRecentSearch } from "../lib/account-store";
 import { runToolSearch, SearchKind, SearchResponse } from "../lib/api-client";
-import { downloadTextReport } from "../lib/report-export";
+import { downloadReport, ReportFormat } from "../lib/report-export";
 import { ToolSidebar } from "../tool-sidebar";
 
 type ToolSearchPageProps = {
@@ -75,6 +75,7 @@ export function ToolSearchPage({
   const [searchStartedAt, setSearchStartedAt] = useState<number | null>(null);
   const [visibleLines, setVisibleLines] = useState(0);
   const [account, setAccount] = useState<AccountState | null>(() => getAccount());
+  const [reportFormat, setReportFormat] = useState<ReportFormat>("txt");
   const lines = useMemo(() => terminalLines(result), [result]);
 
   const statusText = useMemo(() => {
@@ -227,13 +228,27 @@ export function ToolSearchPage({
                   <span>{formatToolName(tool)} :: OSINTForge stream</span>
                   <div className="flex flex-wrap items-center gap-2">
                     {result ? (
-                      <button
-                        className="border border-[#f0b35a]/45 px-3 py-1 font-mono text-[10px] font-black uppercase tracking-[0.14em] text-[#f0b35a] transition hover:bg-[#f0b35a] hover:text-black"
-                        onClick={() => downloadTextReport(result, eyebrow)}
-                        type="button"
-                      >
-                        Export TXT
-                      </button>
+                      <>
+                        <select
+                          className="border border-[#00e0aa]/35 bg-black px-2 py-1 font-mono text-[10px] font-black uppercase tracking-[0.08em] text-white outline-none transition focus:border-[#00e0aa]"
+                          onChange={(event) => setReportFormat(event.target.value as ReportFormat)}
+                          value={reportFormat}
+                        >
+                          <option value="txt">TXT case brief</option>
+                          <option value="casefile">OSINTForge case file TXT</option>
+                          <option value="ascii">ASCII document TXT</option>
+                          <option value="json">JSON evidence payload</option>
+                          <option value="html">HTML report</option>
+                          <option value="doc">Word-compatible DOC</option>
+                        </select>
+                        <button
+                          className="border border-[#f0b35a]/45 px-3 py-1 font-mono text-[10px] font-black uppercase tracking-[0.14em] text-[#f0b35a] transition hover:bg-[#f0b35a] hover:text-black"
+                          onClick={() => downloadReport(result, eyebrow, reportFormat)}
+                          type="button"
+                        >
+                          Export
+                        </button>
+                      </>
                     ) : null}
                     <span className="text-[#00e0aa]">{isLoading ? `ETA ${formatSeconds(remainingMs)}` : result ? "Complete" : "Idle"}</span>
                   </div>
