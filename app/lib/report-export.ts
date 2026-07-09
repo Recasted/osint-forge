@@ -79,6 +79,11 @@ function sourceName(result: SearchResponse) {
   return cleanLine(firstProvider?.name || "OSINTForge");
 }
 
+function displaySourceUrl(url?: string) {
+  if (!url) return "";
+  return /deepintel/i.test(url) ? "https://osintforge.dev" : url;
+}
+
 function groupItemSignals(result: SearchResponse) {
   const groups = new Map<string, Array<{ label: string; value: string; confidence: string; source?: string }>>();
 
@@ -123,7 +128,10 @@ function signalOverview(result: SearchResponse) {
 
 function sourceOverview(result: SearchResponse) {
   if (!result.sources?.length) return "|- No sources returned.";
-  return result.sources.map((source, index) => tree(`Source #${String(index + 1).padStart(2, "0")}`, `${cleanLine(source.name)}${source.url ? ` -> ${source.url}` : ""}`)).join("\n");
+  return result.sources.map((source, index) => {
+    const url = displaySourceUrl(source.url);
+    return tree(`Source #${String(index + 1).padStart(2, "0")}`, `${cleanLine(source.name)}${url ? ` -> ${url}` : ""}`);
+  }).join("\n");
 }
 
 function itemBox(index: string, rows: Array<{ label: string; value: string; confidence: string; source?: string }>) {
@@ -231,40 +239,70 @@ export function makeCaseFileReport(result: SearchResponse, toolName: string) {
 export function makeAsciiDocumentReport(result: SearchResponse, toolName: string) {
   const signals = signalsForReport(result);
   const groups = groupItemSignals(result);
+  const targetType = detectTargetType(result.query);
+  const provider = sourceName(result);
+  const line = "+" + "-".repeat(innerWidth) + "+";
+  const row = (value = "") => `| ${cleanLine(value).slice(0, innerWidth - 2).padEnd(innerWidth - 2)} |`;
+  const panel = (title: string, rows: string[] = []) => [
+    line,
+    row(title.toUpperCase()),
+    line,
+    ...rows.map((value) => row(value)),
+    line,
+  ].join("\n");
+  const signalRows = signals.slice(0, 40).map((signal, index) => {
+    const value = cleanLine(signal.value).slice(0, 72);
+    return `|   +-- [${String(index + 1).padStart(3, "0")}] ${cleanLine(signal.label)} -> ${value}`;
+  });
+  const itemRows = groups.flatMap(([index, rows]) => [
+    `+-- ITEM #${index}`,
+    ...rows.slice(0, 16).map((item) => `|   +-- ${item.label}: ${cleanLine(item.value).slice(0, 78)}`),
+  ]);
+  const sourceRows = result.sources?.length
+    ? result.sources.map((source, index) => {
+      const url = displaySourceUrl(source.url);
+      return `+-- SOURCE #${String(index + 1).padStart(2, "0")}: ${cleanLine(source.name)}${url ? ` -> ${url}` : ""}`;
+    })
+    : ["+-- No sources returned"];
+
   return [
-    `OSINTFORGE ASCII DOCUMENT`,
-    divider(),
+    panel("OSINTForge ASCII Document", [
+      `Target : ${result.query}`,
+      `Module : ${toolName}`,
+      `Type   : ${targetType}`,
+      `Source : ${provider}`,
+      `Signals: ${signals.length}`,
+    ]),
     "",
-    `                ${result.query}`,
-    "                         |",
-    "                         v",
-    `             [ ${toolName.toUpperCase()} ]`,
-    "                         |",
-    "                         v",
-    `             [ ${signals.length} SIGNALS ]`,
+    result.query,
+    "|",
+    `+--> [MODULE] ${toolName}`,
+    "|    |",
+    `|    +--> [PROVIDER] ${provider}`,
+    `|    +--> [TARGET TYPE] ${targetType}`,
+    `|    +--> [LOADED MODULES] ${modulesReturned(result)}`,
+    "|",
+    "+--> [SUMMARY]",
+    `|    +-- ${cleanLine(result.summary)}`,
+    result.note ? `|    +-- ${cleanLine(result.note)}` : "",
+    "|",
+    "+--> [SIGNALS]",
+    signalRows.length ? signalRows.join("\n") : "|   +-- No signals returned",
     "",
-    divider(),
-    "MODULE OVERVIEW",
-    divider(),
-    moduleOverview(result, toolName),
+    groups.length ? panel("Item Groups") : "",
+    groups.length ? itemRows.join("\n") : "",
     "",
-    divider(),
-    "RELATIONSHIP / SIGNAL TREE",
-    divider(),
-    `${result.query}`,
-    signals.slice(0, 30).map((signal) => `|-- ${cleanLine(signal.label)} -> ${cleanLine(signal.value).slice(0, 92)}`).join("\n") || "|-- No signals returned",
+    panel("Sources"),
+    sourceRows.join("\n"),
     "",
-    groups.length ? divider() : "",
-    groups.length ? "ITEM GROUPS" : "",
-    groups.length ? divider() : "",
-    groups.map(([index, rows]) => [`ITEM #${index}`, ...rows.slice(0, 12).map((row) => `|-- ${row.label}: ${cleanLine(row.value)}`)].join("\n")).join("\n\n"),
-    "",
-    divider(),
-    "SOURCES",
-    divider(),
-    sourceOverview(result),
+    panel("Review Notes", [
+      "Confirm provider output before using this in a case file.",
+      "Keep raw search context with the exported report where possible.",
+      "Generated locally by OSINT Forge.",
+    ]),
   ].filter(Boolean).join("\n");
 }
+
 export function makeJsonReport(result: SearchResponse, toolName: string) {
   return JSON.stringify({
     generatedAt: new Date().toISOString(),
@@ -281,7 +319,7 @@ export function makeJsonReport(result: SearchResponse, toolName: string) {
       confidence: signal.confidence,
       source: signal.source ? cleanLine(signal.source) : undefined,
     })),
-    sources: result.sources?.map((source) => ({ name: cleanLine(source.name), url: source.url })) || [],
+    sources: result.sources?.map((source) => ({ name: cleanLine(source.name), url: displaySourceUrl(source.url) })) || [],
   }, null, 2);
 }
 
