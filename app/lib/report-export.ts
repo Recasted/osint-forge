@@ -7,8 +7,12 @@ function slug(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 52) || "report";
 }
 
+function brandProviderText(value: string) {
+  return value.replace(/DeepIntel/gi, "OSINTForge").replace(/deep intel/gi, "OSINTForge");
+}
+
 function cleanLine(value: string) {
-  return String(value || "").replace(/\s+/g, " ").trim();
+  return brandProviderText(String(value || "").replace(/\s+/g, " ").trim());
 }
 
 function divider() {
@@ -17,13 +21,13 @@ function divider() {
 
 function boxLine(text = "") {
   const clean = cleanLine(text);
-  return `│ ${clean.padEnd(innerWidth - 2).slice(0, innerWidth - 2)} │`;
+  return `â”‚ ${clean.padEnd(innerWidth - 2).slice(0, innerWidth - 2)} â”‚`;
 }
 
 function box(title: string, rows: string[] = []) {
-  const top = `┌${"─".repeat(innerWidth)}┐`;
-  const mid = `├${"─".repeat(innerWidth)}┤`;
-  const bottom = `└${"─".repeat(innerWidth)}┘`;
+  const top = `â”Œ${"â”€".repeat(innerWidth)}â”`;
+  const mid = `â”œ${"â”€".repeat(innerWidth)}â”¤`;
+  const bottom = `â””${"â”€".repeat(innerWidth)}â”˜`;
   return [top, boxLine(title), ...(rows.length ? [mid, ...rows.map((row) => boxLine(row))] : []), bottom].join("\n");
 }
 
@@ -32,7 +36,7 @@ function section(title: string) {
 }
 
 function tree(label: string, value?: string) {
-  const left = `├─ ${label}`;
+  const left = `â”œâ”€ ${label}`;
   if (!value) return left;
   const dots = ".".repeat(Math.max(2, 34 - left.length));
   return `${left}${dots} ${value}`;
@@ -105,22 +109,22 @@ function moduleOverview(result: SearchResponse, toolName: string) {
 
 function signalOverview(result: SearchResponse) {
   const signals = signalsForReport(result);
-  if (!signals.length) return "├─ No signals returned.";
+  if (!signals.length) return "â”œâ”€ No signals returned.";
 
   return signals.slice(0, 40).map((signal, index) => {
     const meta = signal.source ? `${signal.confidence} / ${signal.source}` : signal.confidence;
-    return `    ├─ [${String(index + 1).padStart(3, "0")}] ${cleanLine(signal.label)}: ${cleanLine(signal.value)}  (${meta})`;
+    return `    â”œâ”€ [${String(index + 1).padStart(3, "0")}] ${cleanLine(signal.label)}: ${cleanLine(signal.value)}  (${meta})`;
   }).join("\n");
 }
 
 function sourceOverview(result: SearchResponse) {
-  if (!result.sources?.length) return "├─ No sources returned.";
+  if (!result.sources?.length) return "â”œâ”€ No sources returned.";
   return result.sources.map((source, index) => tree(`Source #${String(index + 1).padStart(2, "0")}`, `${source.name}${source.url ? ` -> ${source.url}` : ""}`)).join("\n");
 }
 
 function itemBox(index: string, rows: Array<{ label: string; value: string; confidence: string; source?: string }>) {
-  const top = `┌─ ITEM #${index} ${"─".repeat(Math.max(0, width - 12))}┐`;
-  const bottom = `└${"─".repeat(innerWidth)}┘`;
+  const top = `â”Œâ”€ ITEM #${index} ${"â”€".repeat(Math.max(0, width - 12))}â”`;
+  const bottom = `â””${"â”€".repeat(innerWidth)}â”˜`;
   const preferred = ["Url", "Domain", "Path", "Username", "Email", "Password", "Log", "Id", "Canonical Credential Id", "Indexed At"];
   const ordered = [
     ...preferred.flatMap((label) => rows.filter((row) => row.label.toLowerCase() === label.toLowerCase())),
@@ -129,7 +133,7 @@ function itemBox(index: string, rows: Array<{ label: string; value: string; conf
 
   return [
     top,
-    ...ordered.slice(0, 24).map((row) => `│   ├─ ${row.label.padEnd(22, ".")} ${cleanLine(row.value).slice(0, 68)}`),
+    ...ordered.slice(0, 24).map((row) => `â”‚   â”œâ”€ ${row.label.padEnd(22, ".")} ${cleanLine(row.value).slice(0, 68)}`),
     bottom,
   ].join("\n");
 }
@@ -139,7 +143,7 @@ function itemSections(result: SearchResponse) {
   if (!groups.length) return "";
 
   return [
-    section(`${sourceName(result).toUpperCase()} → DATA ITEMS`),
+    section(`${sourceName(result).toUpperCase()} â†’ DATA ITEMS`),
     ...groups.map(([index, rows]) => itemBox(index, rows)),
   ].join("\n\n");
 }
@@ -155,8 +159,8 @@ export function makeSearchReport(result: SearchResponse, toolName: string) {
     divider(),
     "",
     box(`TARGET: ${result.query}`),
-    "                                                 │",
-    "                                                 ▼",
+    "                                                 â”‚",
+    "                                                 â–¼",
     box("OSINTForge Investigation Engine", [
       `Module: ${toolName}`,
       `Provider: ${provider}`,
@@ -165,8 +169,8 @@ export function makeSearchReport(result: SearchResponse, toolName: string) {
     ]),
     "",
     section("CONTEXT  /   REASON"),
-    `├─ ${cleanLine(result.summary)}`,
-    result.note ? `├─ ${cleanLine(result.note)}` : "",
+    `â”œâ”€ ${cleanLine(result.summary)}`,
+    result.note ? `â”œâ”€ ${cleanLine(result.note)}` : "",
     "",
     section("MODULE OVERVIEW"),
     moduleOverview(result, toolName),
@@ -186,9 +190,9 @@ export function makeSearchReport(result: SearchResponse, toolName: string) {
     divider(),
     "REVIEW NOTES",
     divider(),
-    "├─ Confirm provider output before using this in a case file.",
-    "├─ Keep raw search context with the exported report where possible.",
-    "└─ Generated locally by OSINT Forge.",
+    "â”œâ”€ Confirm provider output before using this in a case file.",
+    "â”œâ”€ Keep raw search context with the exported report where possible.",
+    "â””â”€ Generated locally by OSINT Forge.",
   ].filter(Boolean).join("\n");
 }
 

@@ -288,7 +288,7 @@ async function handleNowPaymentsIpn(request: Request, env: Env) {
 
   return json({ received: true }, request, env);
 }
-type DeepIntelEnvelope = {
+type OSINTForgeEnvelope = {
   ok?: boolean;
   mode?: string;
   target?: string;
@@ -301,7 +301,7 @@ type DeepIntelEnvelope = {
   code?: string;
 };
 
-function summarizeDeepIntelData(data: unknown): string {
+function summarizeOSINTForgeData(data: unknown): string {
   if (data === null || data === undefined || data === "") return "No value returned";
   if (typeof data === "string") return data.slice(0, 260);
   if (typeof data === "number" || typeof data === "boolean") return String(data);
@@ -312,13 +312,13 @@ function summarizeDeepIntelData(data: unknown): string {
   }
   if (typeof data === "object") {
     const entries = Object.entries(data as Record<string, unknown>).slice(0, 5);
-    const preview: string = entries.map(([key, value]) => `${key}: ${typeof value === "object" ? summarizeDeepIntelData(value) : String(value)}`).join(" | ");
+    const preview: string = entries.map(([key, value]) => `${key}: ${typeof value === "object" ? summarizeOSINTForgeData(value) : String(value)}`).join(" | ");
     return preview.slice(0, 260) || "Structured data returned";
   }
   return "Returned data";
 }
 
-function humanizeDeepIntelKey(key: string): string {
+function humanizeOSINTForgeKey(key: string): string {
   return key
     .replace(/\[(\d+)\]/g, " #$1")
     .replace(/[._-]+/g, " ")
@@ -326,34 +326,34 @@ function humanizeDeepIntelKey(key: string): string {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function isPrimitiveDeepIntelValue(value: unknown): boolean {
+function isPrimitiveOSINTForgeValue(value: unknown): boolean {
   return value === null || value === undefined || ["string", "number", "boolean"].includes(typeof value);
 }
 
-function flattenDeepIntelValue(value: unknown, path: string, source: string, signals: Signal[], depth = 0) {
+function flattenOSINTForgeValue(value: unknown, path: string, source: string, signals: Signal[], depth = 0) {
   if (signals.length >= 90 || depth > 5 || value === null || value === undefined || value === "") return;
 
-  if (isPrimitiveDeepIntelValue(value)) {
-    signals.push({ label: humanizeDeepIntelKey(path), value: summarizeDeepIntelData(value), confidence: "high", source });
+  if (isPrimitiveOSINTForgeValue(value)) {
+    signals.push({ label: humanizeOSINTForgeKey(path), value: summarizeOSINTForgeData(value), confidence: "high", source });
     return;
   }
 
   if (Array.isArray(value)) {
-    signals.push({ label: humanizeDeepIntelKey(path), value: `${value.length} record${value.length === 1 ? "" : "s"}`, confidence: value.length ? "high" : "medium", source });
-    value.slice(0, 12).forEach((item, index) => flattenDeepIntelValue(item, `${path}[${index + 1}]`, source, signals, depth + 1));
+    signals.push({ label: humanizeOSINTForgeKey(path), value: `${value.length} record${value.length === 1 ? "" : "s"}`, confidence: value.length ? "high" : "medium", source });
+    value.slice(0, 12).forEach((item, index) => flattenOSINTForgeValue(item, `${path}[${index + 1}]`, source, signals, depth + 1));
     return;
   }
 
   const entries = Object.entries(value as Record<string, unknown>).filter(([, entryValue]) => entryValue !== null && entryValue !== undefined && entryValue !== "");
   for (const [key, entryValue] of entries.slice(0, 24)) {
-    flattenDeepIntelValue(entryValue, path ? `${path}.${key}` : key, source, signals, depth + 1);
+    flattenOSINTForgeValue(entryValue, path ? `${path}.${key}` : key, source, signals, depth + 1);
     if (signals.length >= 90) break;
   }
 }
 
 function deepIntelFieldSignals(data: unknown, source: string): Signal[] {
   const signals: Signal[] = [];
-  flattenDeepIntelValue(data, "data", source, signals);
+  flattenOSINTForgeValue(data, "data", source, signals);
   return signals;
 }
 function deepIntelObjectSummary(label: string, value: unknown): Signal | null {
@@ -363,51 +363,51 @@ function deepIntelObjectSummary(label: string, value: unknown): Signal | null {
     label,
     value: keys.length ? keys.join(", ") : "Structured intelligence returned",
     confidence: "high",
-    source: "DeepIntel",
+    source: "OSINTForge",
   };
 }
 
-function deepIntelSignals(data: DeepIntelEnvelope, endpoint: string): Signal[] {
+function deepIntelSignals(data: OSINTForgeEnvelope, endpoint: string): Signal[] {
   const signals: Signal[] = [];
 
   if (data.type_detected) {
-    signals.push({ label: "DeepIntel target type", value: data.type_detected, confidence: "high", source: "DeepIntel" });
+    signals.push({ label: "OSINTForge target type", value: data.type_detected, confidence: "high", source: "OSINTForge" });
   }
 
-  const domainSignal = deepIntelObjectSummary("DeepIntel domain intel", data.domain_intel);
+  const domainSignal = deepIntelObjectSummary("OSINTForge domain intel", data.domain_intel);
   if (domainSignal) signals.push(domainSignal);
-  const ipSignal = deepIntelObjectSummary("DeepIntel IP intel", data.ip_intel);
+  const ipSignal = deepIntelObjectSummary("OSINTForge IP intel", data.ip_intel);
   if (ipSignal) signals.push(ipSignal);
 
   const hits = data.results || [];
   signals.push({
-    label: "DeepIntel modules",
+    label: "OSINTForge modules",
     value: hits.length ? `${hits.length} module${hits.length === 1 ? "" : "s"} returned` : `No ${endpoint} hits returned`,
     confidence: hits.length ? "high" : "medium",
-    source: "DeepIntel",
+    source: "OSINTForge",
   });
 
   for (const hit of hits.slice(0, 20)) {
-    const source = hit.module || hit.module_key || "DeepIntel";
+    const source = hit.module || hit.module_key || "OSINTForge";
     signals.push({
       label: source,
-      value: summarizeDeepIntelData(hit.data),
+      value: summarizeOSINTForgeData(hit.data),
       confidence: hit.status === "SUCCESS" ? "high" : "medium",
-      source: "DeepIntel",
+      source: "OSINTForge",
     });
     signals.push(...deepIntelFieldSignals(hit.data, source));
   }
 
   if (typeof data.meta?.credits_remaining === "number") {
-    signals.push({ label: "DeepIntel credits remaining", value: String(data.meta.credits_remaining), confidence: "high", source: "DeepIntel" });
+    signals.push({ label: "OSINTForge credits remaining", value: String(data.meta.credits_remaining), confidence: "high", source: "OSINTForge" });
   }
 
   return signals;
 }
 
-type DeepIntelEndpoint = "breaches" | "stealerlogs" | "discord-id" | "domain" | "footprint" | "email" | "phone";
+type OSINTForgeEndpoint = "breaches" | "stealerlogs" | "discord-id" | "domain" | "footprint" | "email" | "phone";
 
-async function deepIntelSearch(endpoint: DeepIntelEndpoint, target: string, env: Env): Promise<DeepIntelEnvelope | null> {
+async function deepIntelSearch(endpoint: OSINTForgeEndpoint, target: string, env: Env): Promise<OSINTForgeEnvelope | null> {
   if (!env.DEEPINTEL_API_KEY) return null;
 
   const response = await fetch(`https://deepintel.cc/api/osint/${endpoint}`, {
@@ -419,11 +419,11 @@ async function deepIntelSearch(endpoint: DeepIntelEndpoint, target: string, env:
     body: JSON.stringify({ target }),
   });
 
-  const data = (await response.json().catch(() => null)) as DeepIntelEnvelope | null;
+  const data = (await response.json().catch(() => null)) as OSINTForgeEnvelope | null;
   if (!response.ok) {
     return {
       ok: false,
-      error: data?.error || "DeepIntel request failed.",
+      error: data?.error || "OSINTForge request failed.",
       code: data?.code || String(response.status),
     };
   }
@@ -431,12 +431,12 @@ async function deepIntelSearch(endpoint: DeepIntelEndpoint, target: string, env:
   return data;
 }
 
-function deepIntelErrorSignal(data: DeepIntelEnvelope): Signal {
+function deepIntelErrorSignal(data: OSINTForgeEnvelope): Signal {
   return {
-    label: "DeepIntel provider",
+    label: "OSINTForge provider",
     value: data.code ? `${data.code}: ${data.error || "request failed"}` : data.error || "request failed",
     confidence: "medium",
-    source: "DeepIntel",
+    source: "OSINTForge",
   };
 }
 async function peopleSearch(query: string, env: Env): Promise<SearchResult> {
@@ -453,13 +453,13 @@ async function peopleSearch(query: string, env: Env): Promise<SearchResult> {
   const deepIntel = await deepIntelSearch("breaches", query, env);
   if (deepIntel?.ok) {
     signals.push(...deepIntelSignals(deepIntel, "breach"));
-    sources.push({ name: "DeepIntel", url: "https://deepintel.cc/docs" });
+    sources.push({ name: "OSINTForge", url: "https://deepintel.cc/docs" });
     return {
       ok: true,
       kind: "people",
       query,
       generatedAt: new Date().toISOString(),
-      summary: "People search completed with DeepIntel breach intelligence.",
+      summary: "People search completed with OSINTForge breach intelligence.",
       signals,
       sources,
     };
@@ -467,7 +467,7 @@ async function peopleSearch(query: string, env: Env): Promise<SearchResult> {
 
   if (deepIntel && !deepIntel.ok) {
     signals.push(deepIntelErrorSignal(deepIntel));
-    sources.push({ name: "DeepIntel", url: "https://deepintel.cc/docs" });
+    sources.push({ name: "OSINTForge", url: "https://deepintel.cc/docs" });
   }
 
   if (!env.DEEPINTEL_API_KEY && isEmail(query) && env.HIBP_API_KEY) {
@@ -496,10 +496,10 @@ async function peopleSearch(query: string, env: Env): Promise<SearchResult> {
     kind: "people",
     query,
     generatedAt: new Date().toISOString(),
-    summary: env.DEEPINTEL_API_KEY ? "People search staged. DeepIntel returned no completed breach result." : "People search staged. Add DEEPINTEL_API_KEY for deeper enrichment.",
+    summary: env.DEEPINTEL_API_KEY ? "People search staged. OSINTForge returned no completed breach result." : "People search staged. Add DEEPINTEL_API_KEY for deeper enrichment.",
     signals,
     sources,
-    note: env.DEEPINTEL_API_KEY ? undefined : "Set DEEPINTEL_API_KEY with `wrangler secret put DEEPINTEL_API_KEY` to enable DeepIntel enrichment.",
+    note: env.DEEPINTEL_API_KEY ? undefined : "Set DEEPINTEL_API_KEY with `wrangler secret put DEEPINTEL_API_KEY` to enable OSINTForge enrichment.",
   };
 }
 
@@ -514,10 +514,10 @@ async function domainSearch(query: string, env: Env): Promise<SearchResult> {
     const deepIntel = await deepIntelSearch("domain", domain, env);
     if (deepIntel?.ok) {
       signals.push(...deepIntelSignals(deepIntel, "domain"));
-      sources.push({ name: "DeepIntel", url: "https://deepintel.cc/docs" });
+      sources.push({ name: "OSINTForge", url: "https://deepintel.cc/docs" });
     } else if (deepIntel && !deepIntel.ok) {
       signals.push(deepIntelErrorSignal(deepIntel));
-      sources.push({ name: "DeepIntel", url: "https://deepintel.cc/docs" });
+      sources.push({ name: "OSINTForge", url: "https://deepintel.cc/docs" });
     }
 
     for (const type of ["A", "AAAA", "MX", "NS", "TXT"] as const) {
@@ -528,7 +528,7 @@ async function domainSearch(query: string, env: Env): Promise<SearchResult> {
     }
   }
 
-  return { ok: true, kind: "domains", query: domain || query, generatedAt: new Date().toISOString(), summary: env.DEEPINTEL_API_KEY ? "Domain search completed with DeepIntel and public DNS enrichment." : "Domain search completed with public DNS enrichment.", signals, sources };
+  return { ok: true, kind: "domains", query: domain || query, generatedAt: new Date().toISOString(), summary: env.DEEPINTEL_API_KEY ? "Domain search completed with OSINTForge and public DNS enrichment." : "Domain search completed with public DNS enrichment.", signals, sources };
 }
 
 async function handleSearch(query: string, env: Env): Promise<SearchResult> {
@@ -547,10 +547,10 @@ async function handleSearch(query: string, env: Env): Promise<SearchResult> {
   const deepIntel = await deepIntelSearch("footprint", handle, env);
   if (deepIntel?.ok) {
     signals.push(...deepIntelSignals(deepIntel, "footprint"));
-    sources.push({ name: "DeepIntel", url: "https://deepintel.cc/docs" });
+    sources.push({ name: "OSINTForge", url: "https://deepintel.cc/docs" });
   } else if (deepIntel && !deepIntel.ok) {
     signals.push(deepIntelErrorSignal(deepIntel));
-    sources.push({ name: "DeepIntel", url: "https://deepintel.cc/docs" });
+    sources.push({ name: "OSINTForge", url: "https://deepintel.cc/docs" });
   }
 
   return {
@@ -558,7 +558,7 @@ async function handleSearch(query: string, env: Env): Promise<SearchResult> {
     kind: "handles",
     query: handle,
     generatedAt: new Date().toISOString(),
-    summary: deepIntel?.ok ? "Handle search completed with DeepIntel footprint intelligence." : "Handle search completed across common public profile surfaces.",
+    summary: deepIntel?.ok ? "Handle search completed with OSINTForge footprint intelligence." : "Handle search completed across common public profile surfaces.",
     signals,
     sources,
     note: deepIntel?.ok ? undefined : "HEAD checks can miss platforms that block automated requests. Treat misses as unconfirmed, not impossible.",
@@ -577,7 +577,7 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function universalSweepEndpoints(query: string): DeepIntelEndpoint[] {
+function universalSweepEndpoints(query: string): OSINTForgeEndpoint[] {
   if (isEmail(query)) return ["email", "footprint", "breaches", "stealerlogs"];
   const cleanDomain = query.replace(/^https?:\/\//, "").split("/")[0].trim().toLowerCase();
   if (isDomain(cleanDomain)) return ["domain", "breaches", "stealerlogs"];
@@ -588,7 +588,7 @@ function universalSweepEndpoints(query: string): DeepIntelEndpoint[] {
 
 async function deepIntelSweep(query: string, env: Env): Promise<{ signals: Signal[]; sources: SearchResult["sources"]; endpoints: string[]; successCount: number }> {
   const signals: Signal[] = [];
-  const sources: SearchResult["sources"] = [{ name: "DeepIntel", url: "https://deepintel.cc/docs" }];
+  const sources: SearchResult["sources"] = [{ name: "OSINTForge", url: "https://deepintel.cc/docs" }];
   const endpoints = universalSweepEndpoints(query);
   let successCount = 0;
 
@@ -603,7 +603,7 @@ async function deepIntelSweep(query: string, env: Env): Promise<{ signals: Signa
 
   for (const [index, endpoint] of endpoints.entries()) {
     if (index > 0) await sleep(1050);
-    signals.push({ label: "DeepIntel sweep", value: `running ${endpoint}`, confidence: "medium", source: "OSINT Forge router" });
+    signals.push({ label: "OSINTForge sweep", value: `running ${endpoint}`, confidence: "medium", source: "OSINT Forge router" });
     const response = await deepIntelSearch(endpoint, query, env);
     if (response?.ok) {
       successCount += 1;
@@ -615,7 +615,7 @@ async function deepIntelSweep(query: string, env: Env): Promise<{ signals: Signa
 
   return { signals, sources, endpoints, successCount };
 }
-const moduleEndpointMap: Record<string, DeepIntelEndpoint> = {
+const moduleEndpointMap: Record<string, OSINTForgeEndpoint> = {
   email: "email",
   network: "domain",
   vin: "breaches",
@@ -640,8 +640,8 @@ const moduleEndpointMap: Record<string, DeepIntelEndpoint> = {
 };
 
 function moduleFallbackHint(module: string) {
-  if (["vin", "aml-screening", "aml-entity-screening", "bin-lookup"].includes(module)) return "DeepIntel does not expose a dedicated endpoint for this module name yet, so OSINT Forge runs the closest broad breach/intelligence lookup.";
-  if (["gta-fivem"].includes(module)) return "DeepIntel's public API resolves Discord IDs for gaming pivots; enter a Discord snowflake for best results.";
+  if (["vin", "aml-screening", "aml-entity-screening", "bin-lookup"].includes(module)) return "OSINTForge does not expose a dedicated endpoint for this module name yet, so OSINT Forge runs the closest broad breach/intelligence lookup.";
+  if (["gta-fivem"].includes(module)) return "OSINTForge's public API resolves Discord IDs for gaming pivots; enter a Discord snowflake for best results.";
   if (["machine-viewer"].includes(module)) return "Machine viewer uses stealerlog search first. Use returned log IDs with victim-file endpoints when archive browsing is connected.";
   return undefined;
 }
@@ -657,7 +657,7 @@ async function moduleSearch(module: string, query: string, env: Env): Promise<Se
       summary: sweep.successCount ? `Universal Search completed across ${sweep.endpoints.join(", ")}.` : `Universal Search ran ${sweep.endpoints.join(", ")} but no completed provider result was returned.`,
       signals: sweep.signals,
       sources: sweep.sources,
-      note: env.DEEPINTEL_API_KEY ? undefined : "Set DEEPINTEL_API_KEY with `wrangler secret put DEEPINTEL_API_KEY` to enable DeepIntel-backed modules.",
+      note: env.DEEPINTEL_API_KEY ? undefined : "Set DEEPINTEL_API_KEY with `wrangler secret put DEEPINTEL_API_KEY` to enable OSINTForge-backed modules.",
     };
   }
 
@@ -669,15 +669,15 @@ async function moduleSearch(module: string, query: string, env: Env): Promise<Se
       query,
       generatedAt: new Date().toISOString(),
       summary: "Unknown module route.",
-      signals: [{ label: "Module", value: `No DeepIntel mapping exists for ${module}.`, confidence: "low", source: "OSINT Forge" }],
+      signals: [{ label: "Module", value: `No OSINTForge mapping exists for ${module}.`, confidence: "low", source: "OSINT Forge" }],
       sources: [{ name: "OSINT Forge API" }],
     };
   }
 
   const signals: Signal[] = [
-    { label: "DeepIntel endpoint", value: endpoint, confidence: "high", source: "OSINT Forge router" },
+    { label: "OSINTForge endpoint", value: endpoint, confidence: "high", source: "OSINT Forge router" },
   ];
-  const sources: SearchResult["sources"] = [{ name: "DeepIntel", url: "https://deepintel.cc/docs" }];
+  const sources: SearchResult["sources"] = [{ name: "OSINTForge", url: "https://deepintel.cc/docs" }];
 
   const deepIntel = await deepIntelSearch(endpoint, query, env);
   if (deepIntel?.ok) {
@@ -695,10 +695,10 @@ async function moduleSearch(module: string, query: string, env: Env): Promise<Se
     kind: module,
     query,
     generatedAt: new Date().toISOString(),
-    summary: deepIntel?.ok ? `${module} completed through DeepIntel ${endpoint}.` : `${module} is wired to DeepIntel ${endpoint}, but no completed provider result was returned.`,
+    summary: deepIntel?.ok ? `${module} completed through OSINTForge ${endpoint}.` : `${module} is wired to OSINTForge ${endpoint}, but no completed provider result was returned.`,
     signals,
     sources,
-    note: hint || (env.DEEPINTEL_API_KEY ? undefined : "Set DEEPINTEL_API_KEY with `wrangler secret put DEEPINTEL_API_KEY` to enable DeepIntel-backed modules."),
+    note: hint || (env.DEEPINTEL_API_KEY ? undefined : "Set DEEPINTEL_API_KEY with `wrangler secret put DEEPINTEL_API_KEY` to enable OSINTForge-backed modules."),
   };
 }
 type CouponDuration = "7d" | "30d" | "90d" | "1y" | "lifetime";

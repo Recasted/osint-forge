@@ -32,6 +32,10 @@ function formatSeconds(ms: number) {
   return `${Math.max(0, Math.ceil(ms / 1000))}s`;
 }
 
+function brandProviderText(value: string) {
+  return value.replace(/DeepIntel/gi, "OSINTForge").replace(/deep intel/gi, "OSINTForge");
+}
+
 function isInternalProviderLine(label: string, value: string, source?: string) {
   const text = `${label} ${value} ${source || ""}`.toLowerCase();
   return text.includes("oversight index") || text.includes("deepintel oversight") || text.includes("deep intel oversight");
@@ -43,17 +47,17 @@ function terminalLines(result: SearchResponse | null) {
   const signals = result.signals
     .filter((signal) => !isInternalProviderLine(signal.label, signal.value, signal.source))
     .map((signal) => ({
-      label: signal.label,
-      value: signal.value,
-      meta: signal.source ? `${signal.confidence} / ${signal.source}` : signal.confidence,
+      label: brandProviderText(signal.label),
+      value: brandProviderText(signal.value),
+      meta: signal.source ? `${signal.confidence} / ${brandProviderText(signal.source)}` : signal.confidence,
       tone: signal.confidence === "high" ? "good" : signal.confidence === "medium" ? "warm" : "muted",
     }));
 
   return [
     { label: "target", value: result.query, meta: "input", tone: "warm" },
-    { label: "summary", value: result.summary, meta: "system", tone: "plain" },
+    { label: "summary", value: brandProviderText(result.summary), meta: "system", tone: "plain" },
     ...signals,
-    ...(result.note ? [{ label: "note", value: result.note, meta: "hint", tone: "muted" }] : []),
+    ...(result.note ? [{ label: "note", value: brandProviderText(result.note), meta: "hint", tone: "muted" }] : []),
   ];
 }
 export function ModulePage({ eyebrow, title, description, locked = true, requiredPlan = "core" }: ModulePageProps) {
@@ -218,7 +222,7 @@ export function ModulePage({ eyebrow, title, description, locked = true, require
 
               <section className="module-result-terminal mt-8 overflow-hidden border border-white/10 bg-black/80 font-mono shadow-2xl shadow-black/40" data-reveal>
                 <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-[11px] uppercase tracking-[0.16em] text-white/44">
-                  <span>{moduleKind} :: DeepIntel stream</span>
+                  <span>{moduleKind} :: OSINTForge stream</span>
                   <div className="flex flex-wrap items-center gap-2">
                     {result ? (
                       <button
@@ -242,7 +246,7 @@ export function ModulePage({ eyebrow, title, description, locked = true, require
                   {isLoading ? (
                     <>
                       <p className="module-terminal-line text-white/64"><span className="text-[#f0b35a]">00</span> opening provider route <span className="float-right text-[#00e0aa]">running</span></p>
-                      <p className="module-terminal-line text-white/64"><span className="text-[#f0b35a]">01</span> querying DeepIntel endpoint <span className="float-right text-[#00e0aa]">{progress}%</span></p>
+                      <p className="module-terminal-line text-white/64"><span className="text-[#f0b35a]">01</span> querying OSINTForge endpoint <span className="float-right text-[#00e0aa]">{progress}%</span></p>
                       <p className="module-terminal-line text-white/38"><span className="text-[#f0b35a]">02</span> parsing records as soon as they return<span className="terminal-cursor" /></p>
                     </>
                   ) : null}
