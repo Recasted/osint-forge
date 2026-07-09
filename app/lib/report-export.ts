@@ -95,8 +95,16 @@ function findRow(rows: ItemRow[], patterns: RegExp[]) {
   return rows.find((row) => rowMatches(row, patterns));
 }
 
+function isCountValue(value: string) {
+  return /^\d+\s+records?$/i.test(cleanLine(value));
+}
+
 function rowValue(rows: ItemRow[], patterns: RegExp[]) {
   return cleanLine(findRow(rows, patterns)?.value || "");
+}
+
+function rowDataValue(rows: ItemRow[], patterns: RegExp[]) {
+  return cleanLine(rows.find((row) => rowMatches(row, patterns) && !isCountValue(row.value))?.value || "");
 }
 
 function extractDomain(value: string) {
@@ -110,11 +118,11 @@ function extractDomain(value: string) {
 }
 
 function itemDomain(rows: ItemRow[]) {
-  return rowValue(rows, [/^domain$/i]) || extractDomain(rowValue(rows, [/url/i, /host/i, /site/i, /path/i]));
+  return rowDataValue(rows, [/^domain #?\d+$/i, /^domain$/i, /^host$/i, /^hostname$/i]) || extractDomain(itemUrl(rows));
 }
 
 function itemUrl(rows: ItemRow[]) {
-  return rowValue(rows, [/url/i, /^path$/i, /login/i, /site/i]);
+  return rowDataValue(rows, [/^url$/i, /^url #?\d+$/i, /^site$/i, /^website$/i, /^path #?\d+$/i, /^path$/i, /login/i]);
 }
 
 function itemPassword(rows: ItemRow[]) {
@@ -170,7 +178,7 @@ function urlHierarchy(result: SearchResponse) {
   for (const [, rows] of groups) {
     const domain = itemDomain(rows) || "unknown-domain";
     const urls = byDomain.get(domain) || [];
-    const url = itemUrl(rows) || rowValue(rows, [/^path$/i]) || "record without URL/path";
+    const url = itemUrl(rows) || "record without URL/path";
     urls.push(url);
     byDomain.set(domain, urls);
   }
@@ -186,6 +194,46 @@ function urlHierarchy(result: SearchResponse) {
   }).join("\n");
 }
 
+function boxTreeRelationshipGraph(result: SearchResponse) {
+  const groups = groupItemSignals(result);
+  if (!groups.length) return "";
+  const byDomain = new Map<string, string[]>();
+
+  for (const [, rows] of groups) {
+    const domain = itemDomain(rows) || "unknown-domain";
+    const urls = byDomain.get(domain) || [];
+    urls.push(itemUrl(rows) || "record without URL/path");
+    byDomain.set(domain, urls);
+  }
+
+  const lines = [
+    `► ${cleanLine(result.query)}`,
+    "│",
+    "▼",
+    "█ RELATED DOMAINS",
+    "│",
+  ];
+  const domains = [...byDomain.entries()].sort(([a], [b]) => a.localeCompare(b));
+  domains.forEach(([domain, urls], domainIndex) => {
+    const lastDomain = domainIndex === domains.length - 1;
+    lines.push(`${lastDomain ? "└" : "├"}──► ${domain}`);
+    const domainStem = lastDomain ? "   " : "│  ";
+    const cleanUrls = uniqueValues(urls).sort().slice(0, 10);
+    cleanUrls.forEach((url, urlIndex) => {
+      const lastUrl = urlIndex === cleanUrls.length - 1;
+      lines.push(`${domainStem}${lastUrl ? "└" : "├"}──► ${url}`);
+    });
+  });
+  return lines.join("\n");
+}
+
+function boxTreeText(value: string) {
+  return value
+    .replace(/\|-/g, "├──►")
+    .replace(/`-/g, "└──►")
+    .replace(/\|  /g, "│  ")
+    .replace(/   /g, "   ");
+}
 function credentialReuseGraph(result: SearchResponse) {
   const groups = groupItemSignals(result);
   const byPassword = new Map<string, string[]>();
@@ -414,66 +462,72 @@ export function makeAsciiDocumentReport(result: SearchResponse, toolName: string
   const groups = groupItemSignals(result);
   const targetType = detectTargetType(result.query);
   const provider = sourceName(result);
-  const line = "+" + "-".repeat(innerWidth) + "+";
-  const row = (value = "") => `| ${cleanLine(value).slice(0, innerWidth - 2).padEnd(innerWidth - 2)} |`;
+  const line = "┌" + "─".repeat(innerWidth) + "┐";
+  const mid = "├" + "─".repeat(innerWidth) + "┤";
+  const bottom = "└" + "─".repeat(innerWidth) + "┘";
+  const row = (value = "") => `│ ${cleanLine(value).slice(0, innerWidth - 2).padEnd(innerWidth - 2)} │`;
   const panel = (title: string, rows: string[] = []) => [
     line,
-    row(title.toUpperCase()),
-    line,
+    row(`█ ${title.toUpperCase()} ▓▒░`),
+    mid,
     ...rows.map((value) => row(value)),
-    line,
+    bottom,
   ].join("\n");
   const signalRows = signals.slice(0, 40).map((signal, index) => {
     const value = cleanLine(signal.value).slice(0, 72);
-    return `|   +-- [${String(index + 1).padStart(3, "0")}] ${cleanLine(signal.label)} -> ${value}`;
+    return `├──► [${String(index + 1).padStart(3, "0")}] ${cleanLine(signal.label)} ─ ${value}`;
   });
-  const itemRows = groups.flatMap(([index, rows]) => [
-    `+-- ITEM #${index}`,
-    ...rows.slice(0, 16).map((item) => `|   +-- ${item.label}: ${cleanLine(item.value).slice(0, 78)}`),
+  const itemRows = groups.flatMap(([index, rows], groupIndex) => [
+    `${groupIndex === groups.length - 1 ? "└" : "├"}──► ITEM #${index}`,
+    ...rows.slice(0, 16).map((item, itemIndex, allItems) => `│   ${itemIndex === allItems.length - 1 ? "└" : "├"}──► ${item.label}: ${cleanLine(item.value).slice(0, 78)}`),
   ]);
   const sourceRows = result.sources?.length
-    ? result.sources.map((source, index) => {
+    ? result.sources.map((source, index, allSources) => {
       const url = displaySourceUrl(source.url);
-      return `+-- SOURCE #${String(index + 1).padStart(2, "0")}: ${cleanLine(source.name)}${url ? ` -> ${url}` : ""}`;
+      return `${index === allSources.length - 1 ? "└" : "├"}──► SOURCE #${String(index + 1).padStart(2, "0")}: ${cleanLine(source.name)}${url ? ` ─ ${url}` : ""}`;
     })
-    : ["+-- No sources returned"];
+    : ["└──► No sources returned"];
 
   return [
-    panel("OSINTForge ASCII Document", [
-      `Target : ${result.query}`,
-      `Module : ${toolName}`,
-      `Type   : ${targetType}`,
-      `Source : ${provider}`,
-      `Signals: ${signals.length}`,
+    panel("OSINTForge Box Drawing Document", [
+      `Target  │ ${result.query}`,
+      `Module  │ ${toolName}`,
+      `Type    │ ${targetType}`,
+      `Source  │ ${provider}`,
+      `Signals │ ${signals.length}`,
     ]),
     "",
-    result.query,
-    "|",
-    `+--> [MODULE] ${toolName}`,
-    "|    |",
-    `|    +--> [PROVIDER] ${provider}`,
-    `|    +--> [TARGET TYPE] ${targetType}`,
-    `|    +--> [LOADED MODULES] ${modulesReturned(result)}`,
-    "|",
-    "+--> [SUMMARY]",
-    `|    +-- ${cleanLine(result.summary)}`,
-    result.note ? `|    +-- ${cleanLine(result.note)}` : "",
+    boxTreeRelationshipGraph(result) || [
+      `► ${result.query}`,
+      "│",
+      "▼",
+      `█ MODULE: ${toolName}`,
+      "│",
+      `├──► PROVIDER: ${provider}`,
+      `├──► TARGET TYPE: ${targetType}`,
+      `└──► LOADED MODULES: ${modulesReturned(result)}`,
+    ].join("\n"),
+    "",
+    "█ SUMMARY",
+    "│",
+    `└──► ${cleanLine(result.summary)}`,
+    result.note ? `    └──► ${cleanLine(result.note)}` : "",
     "",
     groups.length ? panel("Auto Sorted URL Hierarchy") : "",
-    groups.length ? urlHierarchy(result) : "",
+    groups.length ? boxTreeText(urlHierarchy(result)) : "",
     groups.length ? "" : "",
     groups.length ? panel("Auto Sorted Credential Reuse") : "",
-    groups.length ? credentialReuseGraph(result) : "",
+    groups.length ? boxTreeText(credentialReuseGraph(result)) : "",
     groups.length ? "" : "",
     groups.length ? panel("Auto Sorted Timeline") : "",
-    groups.length ? timelineOverview(result) : "",
+    groups.length ? boxTreeText(timelineOverview(result)) : "",
     groups.length ? "" : "",
     groups.length ? panel("Intelligence Summary") : "",
-    groups.length ? intelligenceSummary(result) : "",
+    groups.length ? boxTreeText(intelligenceSummary(result)) : "",
     groups.length ? "" : "",
-    "|",
-    "+--> [SIGNALS]",
-    signalRows.length ? signalRows.join("\n") : "|   +-- No signals returned",
+    "█ SIGNALS",
+    "│",
+    signalRows.length ? signalRows.join("\n") : "└──► No signals returned",
     "",
     groups.length ? panel("Item Groups") : "",
     groups.length ? itemRows.join("\n") : "",
@@ -488,7 +542,6 @@ export function makeAsciiDocumentReport(result: SearchResponse, toolName: string
     ]),
   ].filter(Boolean).join("\n");
 }
-
 export function makeJsonReport(result: SearchResponse, toolName: string) {
   return JSON.stringify({
     generatedAt: new Date().toISOString(),
